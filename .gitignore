@@ -1,0 +1,53 @@
+build/
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# compiled object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# precompiled
+*.gch
+*.pch
+
+# compiled libs
+*.so
+*.dylib
+*.dll
+*.lai
+*.la
+*.a
+*.lib
+
+# executables
+*.exe
+*.out
+*.app
+quizzer
+
+# local quiz databases / test files
+quiz.yaml
+test*.yaml
+test*.md
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
