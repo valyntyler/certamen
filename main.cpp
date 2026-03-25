@@ -204,9 +204,9 @@ static void print_question(const Question& q, std::size_t idx, std::size_t total
     std::cout << q.question << "\n";
     if (q.code && !q.code->empty())
     {
-        std::cout << "\n--- Code ---\n";
+        std::cout << "\n%%% Code %%%\n";
         std::cout << *q.code << "\n";
-        std::cout << "------------\n";
+        std::cout << "%%%%%%\n";
     }
     for (std::size_t i = 0; i < q.choices.size(); ++i)
     {
@@ -405,12 +405,40 @@ static void list_questions(const std::vector<Question>& questions)
         return;
     }
 
+    bool show_answers = read_yes_no("Show correct answers?");
+    bool show_code    = read_yes_no("Show code snippets?");
+    bool show_explain = read_yes_no("Show explanations?");
+
     std::cout << "\nAll Questions:\n";
     for (std::size_t i = 0; i < questions.size(); ++i)
     {
-        std::cout << (i + 1) << ". " << questions[i].question
-                  << (questions[i].code ? " [code]" : "")
-                  << (questions[i].explain ? " [explain]" : "") << "\n";
+        const Question& q = questions[i];
+
+        std::cout << "\n" << (i + 1) << ". " << q.question
+                  << (q.code ? " [code]" : "")
+                  << (q.explain ? " [explain]" : "") << "\n";
+
+        if (show_code && q.code && !q.code->empty())
+        {
+            std::cout << "\n%%% Code %%%\n";
+            std::cout << *q.code << "\n";
+            std::cout << "%%%%%%\n";
+        }
+
+        for (std::size_t j = 0; j < q.choices.size(); ++j)
+        {
+            std::cout << "  " << (j + 1) << ". " << q.choices[j];
+            if (show_answers && static_cast<int>(j) == q.answer)
+            {
+                std::cout << "  [x] correct";
+            }
+            std::cout << "\n";
+        }
+
+        if (show_explain && q.explain && !q.explain->empty())
+        {
+            std::cout << "Explanation:\n" << *q.explain << "\n";
+        }
     }
 }
 
