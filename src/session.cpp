@@ -52,7 +52,7 @@ static void run_name_prompt(std::string& player_name, ScreenInteractive& screen)
         return vbox({
             text(""),
             text(""),
-            text(" Quizzer ") | bold | center,
+            text(" Certamen ") | bold | center,
             text(""),
             separator() | color(Color::GrayDark),
             text(""),
@@ -100,7 +100,7 @@ static int run_quiz_picker(const std::vector<std::string>& quiz_files,
     auto renderer = Renderer(component, [&, menu, entries] {
         return vbox({
             text(""),
-            text(" Quizzer ") | bold | center,
+            text(" Certamen ") | bold | center,
             text(" " + player_name) | dim | center,
             text(""),
             separator() | color(Color::GrayDark),

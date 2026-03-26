@@ -1,5 +1,5 @@
-#ifndef QUIZZER_SERVE_HPP
-#define QUIZZER_SERVE_HPP
+#ifndef CERTAMEN_SERVE_HPP
+#define CERTAMEN_SERVE_HPP
 
 #include <string>
 #include <vector>

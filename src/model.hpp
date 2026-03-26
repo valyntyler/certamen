@@ -1,5 +1,5 @@
-#ifndef QUIZZER_MODEL_HPP
-#define QUIZZER_MODEL_HPP
+#ifndef CERTAMEN_MODEL_HPP
+#define CERTAMEN_MODEL_HPP
 
 #include <string>
 #include <vector>

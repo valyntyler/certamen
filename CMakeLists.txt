@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(quizzer LANGUAGES CXX)
+project(certamen LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,17 +23,17 @@ find_package(yaml-cpp REQUIRED)
 find_package(libssh REQUIRED)
 
 file(GLOB_RECURSE SOURCES src/*.cpp)
-add_executable(quizzer ${SOURCES})
+add_executable(certamen ${SOURCES})
 
-target_include_directories(quizzer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(certamen PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(quizzer
+target_link_libraries(certamen
   PRIVATE ftxui::screen ftxui::dom ftxui::component
   PRIVATE yaml-cpp
   PRIVATE ssh
   PRIVATE util
 )
 
-set_target_properties(quizzer PROPERTIES
+set_target_properties(certamen PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )

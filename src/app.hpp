@@ -1,5 +1,5 @@
-#ifndef QUIZZER_APP_HPP
-#define QUIZZER_APP_HPP
+#ifndef CERTAMEN_APP_HPP
+#define CERTAMEN_APP_HPP
 
 #include "model.hpp"
 #include <array>

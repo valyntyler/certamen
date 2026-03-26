@@ -117,7 +117,7 @@ ftxui::Component make_menu_screen(AppState& state)
 
         Elements content;
         content.push_back(text(""));
-        content.push_back(text(" Quizzer ") | bold | center);
+        content.push_back(text(" Certamen ") | bold | center);
         content.push_back(text(""));
         content.push_back(separator() | color(Color::GrayDark));
         content.push_back(text(""));

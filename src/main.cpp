@@ -30,7 +30,7 @@ static void print_usage(const char* prog)
               << "\nServe options:\n"
               << "  --port <N>          Listen port (default: 2222)\n"
               << "  --password <pw>     Require password (default: open)\n"
-              << "  --key <path>        Host key (default: quizzer_host_rsa)\n"
+              << "  --key <path>        Host key (default: certamen_host_rsa)\n"
               << "  --max-clients <N>   Max concurrent clients (default: 8)\n"
               << "\nExamples:\n"
               << "  " << prog << " example_quiz.yaml\n"
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
         int port = 2222;
         int max_clients = 8;
         std::string password;
-        std::string key_path = "quizzer_host_rsa";
+        std::string key_path = "certamen_host_rsa";
         std::vector<std::string> files;
 
         for (int i = 2; i < argc; ++i)

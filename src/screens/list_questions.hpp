@@ -1,5 +1,5 @@
-#ifndef QUIZZER_SCREEN_LIST_QUESTIONS_HPP
-#define QUIZZER_SCREEN_LIST_QUESTIONS_HPP
+#ifndef CERTAMEN_SCREEN_LIST_QUESTIONS_HPP
+#define CERTAMEN_SCREEN_LIST_QUESTIONS_HPP
 
 #include <ftxui/component/component.hpp>
 struct AppState;

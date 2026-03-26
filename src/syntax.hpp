@@ -1,5 +1,5 @@
-#ifndef QUIZZER_SYNTAX_HPP
-#define QUIZZER_SYNTAX_HPP
+#ifndef CERTAMEN_SYNTAX_HPP
+#define CERTAMEN_SYNTAX_HPP
 
 #include <ftxui/dom/elements.hpp>
 #include <string>

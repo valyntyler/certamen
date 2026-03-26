@@ -360,7 +360,7 @@ static void handle_client(ssh_session session,
     ws.ws_col = static_cast<unsigned short>(term_cols);
     ws.ws_row = static_cast<unsigned short>(term_rows);
     // /tmp
-    char metrics_tmpl[] = "/tmp/quizzer_metrics_XXXXXX";
+    char metrics_tmpl[] = "/tmp/certamen_metrics_XXXXXX";
     int metrics_fd = mkstemp(metrics_tmpl);
     if (metrics_fd >= 0) close(metrics_fd);
     std::string metrics_path = metrics_tmpl;
@@ -456,7 +456,7 @@ int serve_main(int port,
         return 1;
     }
 
-    log_info("Quizzer SSH server listening on port " + std::to_string(port));
+    log_info("Certamen SSH server listening on port " + std::to_string(port));
     log_info("Connect: ssh -p " + std::to_string(port) + " <name>@<host>");
     if (password.empty())
         log_info("Auth: open (no password)");

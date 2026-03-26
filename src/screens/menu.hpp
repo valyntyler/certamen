@@ -1,5 +1,5 @@
-#ifndef QUIZZER_SCREEN_MENU_HPP
-#define QUIZZER_SCREEN_MENU_HPP
+#ifndef CERTAMEN_SCREEN_MENU_HPP
+#define CERTAMEN_SCREEN_MENU_HPP
 
 #include <ftxui/component/component.hpp>
 struct AppState;

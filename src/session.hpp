@@ -1,5 +1,5 @@
-#ifndef QUIZZER_SESSION_HPP
-#define QUIZZER_SESSION_HPP
+#ifndef CERTAMEN_SESSION_HPP
+#define CERTAMEN_SESSION_HPP
 
 #include <string>
 #include <vector>
