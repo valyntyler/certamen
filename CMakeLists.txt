@@ -1,5 +1,4 @@
-
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 project(quizzer LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -11,9 +10,29 @@ else()
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+include(FetchContent)
+FetchContent_Declare(ftxui
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI
+  GIT_TAG v6.1.9
+)
+set(FTXUI_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(FTXUI_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(ftxui)
+
 find_package(yaml-cpp REQUIRED)
-add_executable(quizzer main.cpp)
-target_link_libraries(quizzer PRIVATE yaml-cpp)
+find_package(libssh REQUIRED)
+
+file(GLOB_RECURSE SOURCES src/*.cpp)
+add_executable(quizzer ${SOURCES})
+
+target_include_directories(quizzer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+target_link_libraries(quizzer
+  PRIVATE ftxui::screen ftxui::dom ftxui::component
+  PRIVATE yaml-cpp
+  PRIVATE ssh
+  PRIVATE util
+)
 
 set_target_properties(quizzer PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
