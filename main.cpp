@@ -530,7 +530,7 @@ static void show_unsaved_changes(
 
 static int menu_choice(bool randomise)
 {
-    std::cout << "\nQuizzer (Randomise: " << (randomise ? "ON" : "OFF") << ")\n"
+    std::cout << "\nCertamen (Randomise: " << (randomise ? "ON" : "OFF") << ")\n"
                  "1. Take Quiz\n"
                  "2. Add Question\n"
                  "3. Remove Question\n"
