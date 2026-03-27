@@ -19,11 +19,17 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <pty.h>
 #include <poll.h>
 #include <fcntl.h>
 #include <errno.h>
 
+#if defined(__linux__)
+  #include <pty.h>
+#elif defined(__APPLE__)
+  #include <util.h>   // openpty on macOS
+#else
+  // windows: no pty.h/openpty path in this implementation yet
+#endif
 static volatile sig_atomic_t g_running = 1;
 
 static void sighandler(int) { g_running = 0; }
