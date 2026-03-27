@@ -8,7 +8,8 @@
   [![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 
-  Charlie Brown aces his tests with this!
+  ## Charlie Brown aces his tests with this!
+  
   <img src="peanuts-quiz.png" alt="certamen-banner"/>
   <br />
 </div>
@@ -126,7 +127,7 @@ cmake --build --preset release
 certamen quiz.yaml
 ```
 
-The TUI presents a menu with keyboard navigation:
+The TUI presents a menu with keyboard (j/k), (up/down/left/right) and number-key navigation:
 
 1. *Take Quiz*; answer questions (`bool: randomiser`), get scored at the end
 2. *Add Question*; compose a question with choices, optional code snippet, and explanation
@@ -140,6 +141,8 @@ The TUI presents a menu with keyboard navigation:
 
 > On quit, Certamen shows a diff of unsaved changes so nothing is lost by accident.
 > I am working on adding "Change Choice" and implementing that inside Change Answer.
+
+> REMARK: The mouse functionality is WIP.
 
 ### SSH server mode
 
@@ -255,6 +258,6 @@ The name **Certamen** is Latin for "contest" so I thought "yeah! this works!" th
 
 ## License
 
-[<img src="./brainmade-org.png" alt="brainmade.org"](https://brainmade.org)
+[<img src="./brainmade-org.png" alt="brainmade.org">](https://brainmade.org)
 MIT; See [LICENSE.md](LICENSE.md).
 Copyright 2026 Niladri Adhikary.
