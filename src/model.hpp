@@ -25,8 +25,15 @@ struct Question
     }
 };
 
+struct QuizFile
+{
+    std::string name;
+    std::string author;
+    std::vector<Question> questions;
+};
+
 std::optional<std::string> validate_question(const Question& q);
-std::vector<Question> load_questions(const std::string& filename);
-void save_questions(const std::vector<Question>& questions, const std::string& filename);
+QuizFile load_quiz(const std::string& filename);
+void save_quiz(const QuizFile& quiz, const std::string& filename);
 
 #endif

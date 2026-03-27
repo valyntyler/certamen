@@ -1,5 +1,6 @@
 #include "screens/quit_confirm.hpp"
 #include "app.hpp"
+#include "diff.hpp"
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
@@ -14,8 +15,7 @@ ftxui::Component make_quit_confirm_screen(AppState& state, ftxui::ScreenInteract
     }, ButtonOption::Simple());
 
     auto cancel_btn = Button(" Cancel ", [&] {
-        state.current_screen = AppScreen::MENU;
-        state.status_message.clear();
+        state.return_to_menu();
     }, ButtonOption::Simple());
 
     auto container = Container::Horizontal({quit_btn, cancel_btn});
@@ -23,26 +23,14 @@ ftxui::Component make_quit_confirm_screen(AppState& state, ftxui::ScreenInteract
     container |= CatchEvent([&](Event event) {
         if (event == Event::Escape)
         {
-            state.current_screen = AppScreen::MENU;
-            state.status_message.clear();
+            state.return_to_menu();
             return true;
         }
         return false;
     });
 
     return Renderer(container, [&, quit_btn, cancel_btn] {
-        Elements diff_entries;
-        for (const auto& line : state.diff_lines)
-        {
-            Color line_color = Color::Default;
-            if (line.size() > 1 && line[0] == '[')
-            {
-                if (line[1] == '+') line_color = Color::Green;
-                else if (line[1] == '-') line_color = Color::RedLight;
-                else if (line[1] == '~') line_color = Color::Yellow;
-            }
-            diff_entries.push_back(text("  " + line) | color(line_color));
-        }
+        auto diff_entries = render_diff_lines(state.diff_lines);
 
         return vbox({
             text(""),

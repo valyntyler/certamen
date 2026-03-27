@@ -1,6 +1,7 @@
 #include "screens/quiz_result.hpp"
 #include "app.hpp"
 #include <ftxui/component/component.hpp>
+#include <ftxui/component/event.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <iomanip>
 #include <sstream>
@@ -10,11 +11,19 @@ using namespace ftxui;
 ftxui::Component make_quiz_result_screen(AppState& state)
 {
     auto back_btn = Button(" Back to Menu ", [&] {
-        state.current_screen = AppScreen::MENU;
-        state.status_message.clear();
+        state.return_to_menu();
     }, ButtonOption::Simple());
 
-    return Renderer(back_btn, [&, back_btn] {
+    auto component = CatchEvent(back_btn, [&](Event event) {
+        if (event == Event::Escape || event == Event::Character('q'))
+        {
+            state.return_to_menu();
+            return true;
+        }
+        return false;
+    });
+
+    return Renderer(component, [&, back_btn] {
         int total = static_cast<int>(state.quiz_session.size());
         double pct = total > 0
             ? 100.0 * static_cast<double>(state.quiz_score) / static_cast<double>(total)

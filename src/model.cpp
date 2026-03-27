@@ -14,20 +14,12 @@ std::optional<std::string> validate_question(const Question& q)
     return std::nullopt;
 }
 
-std::vector<Question> load_questions(const std::string& filename)
+static std::vector<Question> parse_question_sequence(const YAML::Node& seq)
 {
-    YAML::Node root = YAML::LoadFile(filename);
-    if (!root.IsSequence())
-    {
-        throw std::runtime_error(
-            "YAML must be a sequence. Ensure your file starts with a"
-            " dash (-) for each question. See example_quiz.yaml.");
-    }
-
     std::vector<Question> questions;
-    questions.reserve(root.size());
+    questions.reserve(seq.size());
 
-    for (const auto& item : root)
+    for (const auto& item : seq)
     {
         if (!item.IsMap())
         {
@@ -78,9 +70,34 @@ std::vector<Question> load_questions(const std::string& filename)
     return questions;
 }
 
-void save_questions(const std::vector<Question>& questions, const std::string& filename)
+QuizFile load_quiz(const std::string& filename)
 {
-    YAML::Emitter out;
+    YAML::Node root = YAML::LoadFile(filename);
+    QuizFile quiz;
+
+    if (!root.IsMap())
+    {
+        throw std::runtime_error(
+            "YAML must be a map with 'questions' (and optionally 'name', 'author')."
+            " See example_quiz.yaml.");
+    }
+
+    if (root["name"])   quiz.name   = root["name"].as<std::string>();
+    if (root["author"]) quiz.author = root["author"].as<std::string>();
+
+    auto q_node = root["questions"];
+    if (!q_node)
+        throw std::runtime_error(
+            "YAML map must contain a 'questions' key with a sequence of questions.");
+    if (!q_node.IsSequence())
+        throw std::runtime_error("'questions' must be a sequence.");
+
+    quiz.questions = parse_question_sequence(q_node);
+    return quiz;
+}
+
+static void emit_questions(YAML::Emitter& out, const std::vector<Question>& questions)
+{
     out << YAML::BeginSeq;
     for (const auto& q : questions)
     {
@@ -108,6 +125,17 @@ void save_questions(const std::vector<Question>& questions, const std::string& f
         out << YAML::EndMap;
     }
     out << YAML::EndSeq;
+}
+
+void save_quiz(const QuizFile& quiz, const std::string& filename)
+{
+    YAML::Emitter out;
+    out << YAML::BeginMap;
+    out << YAML::Key << "name"   << YAML::Value << quiz.name;
+    out << YAML::Key << "author" << YAML::Value << quiz.author;
+    out << YAML::Key << "questions" << YAML::Value;
+    emit_questions(out, quiz.questions);
+    out << YAML::EndMap;
 
     std::ofstream file_out(filename);
     if (!file_out)
@@ -117,3 +145,4 @@ void save_questions(const std::vector<Question>& questions, const std::string& f
     }
     file_out << out.c_str();
 }
+

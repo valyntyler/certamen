@@ -1,5 +1,6 @@
 #include "screens/list_questions.hpp"
 #include "app.hpp"
+#include "nav.hpp"
 #include "syntax.hpp"
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
@@ -13,38 +14,22 @@ ftxui::Component make_list_questions_screen(AppState& state)
     auto code_toggle    = Checkbox(" Code", &state.list_show_code);
     auto explain_toggle = Checkbox(" Explain", &state.list_show_explain);
 
-    auto back_btn = Button(" Back ", [&] {
-        state.current_screen = AppScreen::MENU;
-        state.status_message.clear();
-    }, ButtonOption::Simple());
-
-    auto controls = Container::Horizontal({answer_toggle, code_toggle, explain_toggle, back_btn});
+    auto controls = Container::Horizontal({answer_toggle, code_toggle, explain_toggle});
 
     auto component = Container::Vertical({controls});
 
     component |= CatchEvent([&](Event event) {
-        if (event == Event::Character('j') || event == Event::ArrowDown)
-        {
-            if (state.list_selected < static_cast<int>(state.questions.size()) - 1)
-                state.list_selected++;
-            return true;
-        }
-        if (event == Event::Character('k') || event == Event::ArrowUp)
-        {
-            if (state.list_selected > 0) state.list_selected--;
-            return true;
-        }
+        int count = static_cast<int>(state.questions.size());
+        if (nav_up_down(event, state.list_selected, count)) return true;
         if (event == Event::Character('b') || event == Event::Escape)
         {
-            state.current_screen = AppScreen::MENU;
-            state.status_message.clear();
+            state.return_to_menu();
             return true;
         }
         return false;
     });
 
-    return Renderer(component, [&, answer_toggle, code_toggle, explain_toggle, back_btn] {
-        // Left panel: question list
+    return Renderer(component, [&, answer_toggle, code_toggle, explain_toggle] {
         Elements list_entries;
         for (std::size_t i = 0; i < state.questions.size(); ++i)
         {
@@ -67,7 +52,6 @@ ftxui::Component make_list_questions_screen(AppState& state)
         auto list_panel = vbox(std::move(list_entries))
             | vscroll_indicator | frame | flex;
 
-        // Right panel: detail
         Elements detail;
         if (state.list_selected >= 0 &&
             state.list_selected < static_cast<int>(state.questions.size()))
@@ -111,13 +95,13 @@ ftxui::Component make_list_questions_screen(AppState& state)
             | size(HEIGHT, GREATER_THAN, 15);
 
         auto toggles_bar = hbox({
+            filler(),
             answer_toggle->Render(),
             text("  "),
             code_toggle->Render(),
             text("  "),
             explain_toggle->Render(),
             filler(),
-            back_btn->Render() | color(Color::RedLight),
         });
 
         return vbox({
@@ -133,7 +117,7 @@ ftxui::Component make_list_questions_screen(AppState& state)
                 detail_panel | flex,
             }) | flex,
             separator() | color(Color::GrayDark),
-            text(" j/k navigate  Tab toggles  b back ") | dim | center,
+            text(" j/k navigate  Tab toggles  Esc back ") | dim | center,
         }) | borderRounded;
     });
 }

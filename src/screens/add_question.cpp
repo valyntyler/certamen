@@ -75,8 +75,7 @@ ftxui::Component make_add_question_screen(AppState& state)
     }, ButtonOption::Simple());
 
     auto cancel_btn = Button(" Cancel ", [&] {
-        state.current_screen = AppScreen::MENU;
-        state.status_message.clear();
+        state.return_to_menu();
     }, ButtonOption::Simple());
 
     auto choice_btns_row = Container::Horizontal({add_choice_btn, sub_choice_btn});
@@ -88,8 +87,7 @@ ftxui::Component make_add_question_screen(AppState& state)
     auto component = CatchEvent(inner, [&](Event event) {
         if (event == Event::Escape)
         {
-            state.current_screen = AppScreen::MENU;
-            state.status_message.clear();
+            state.return_to_menu();
             return true;
         }
         return false;

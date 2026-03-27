@@ -1,5 +1,6 @@
 #include "screens/menu.hpp"
 #include "app.hpp"
+#include "banner.hpp"
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -21,7 +22,6 @@ ftxui::Component make_menu_screen(AppState& state)
     };
 
     auto menu = Menu(&entries, &state.menu_selected);
-
     auto component = Container::Vertical({menu});
 
     component |= CatchEvent([&](Event event) {
@@ -29,13 +29,9 @@ ftxui::Component make_menu_screen(AppState& state)
         {
             char ch = event.character()[0];
             if (ch >= '1' && ch <= '9')
-            {
                 state.menu_selected = ch - '1';
-            }
             else
-            {
                 return false;
-            }
         }
 
         if (event == Event::Return ||
@@ -43,17 +39,17 @@ ftxui::Component make_menu_screen(AppState& state)
         {
             switch (state.menu_selected)
             {
-                case 0: // Take Quiz
+                case 0:
                     if (state.questions.empty())
                         state.status_message = "No questions loaded.";
                     else
                         state.start_quiz();
                     return true;
-                case 1: // Add Question
+                case 1:
                     state.reset_add_form();
                     state.current_screen = AppScreen::ADD_QUESTION;
                     return true;
-                case 2: // Remove Question
+                case 2:
                     if (state.questions.empty())
                         state.status_message = "No questions to remove.";
                     else
@@ -62,7 +58,7 @@ ftxui::Component make_menu_screen(AppState& state)
                         state.current_screen = AppScreen::REMOVE_QUESTION;
                     }
                     return true;
-                case 3: // Change Answer
+                case 3:
                     if (state.questions.empty())
                         state.status_message = "No questions available.";
                     else
@@ -73,7 +69,7 @@ ftxui::Component make_menu_screen(AppState& state)
                         state.current_screen = AppScreen::CHANGE_ANSWER;
                     }
                     return true;
-                case 4: // Edit Choice
+                case 4:
                     if (state.questions.empty())
                         state.status_message = "No questions available.";
                     else
@@ -84,7 +80,7 @@ ftxui::Component make_menu_screen(AppState& state)
                         state.current_screen = AppScreen::EDIT_CHOICE;
                     }
                     return true;
-                case 5: // List Questions
+                case 5:
                     if (state.questions.empty())
                         state.status_message = "No questions available.";
                     else
@@ -93,16 +89,16 @@ ftxui::Component make_menu_screen(AppState& state)
                         state.current_screen = AppScreen::LIST_QUESTIONS;
                     }
                     return true;
-                case 6: // Set Author and Name
+                case 6:
                     state.meta_name_text = state.quiz_name;
                     state.meta_author_text = state.quiz_author;
                     state.current_screen = AppScreen::SET_METADATA;
                     return true;
-                case 7: // Save and Exit
+                case 7:
                     state.compute_diff();
                     state.current_screen = AppScreen::SAVE_CONFIRM;
                     return true;
-                case 8: // Quit without Saving
+                case 8:
                     state.compute_diff();
                     state.current_screen = AppScreen::QUIT_CONFIRM;
                     return true;
@@ -116,21 +112,15 @@ ftxui::Component make_menu_screen(AppState& state)
                         || (state.quiz_name != state.saved_quiz_name)
                         || (state.quiz_author != state.saved_quiz_author);
 
-        auto randomise_el = state.randomise
-            ? text(" ON ") | color(Color::Green) | bold
-            : text(" OFF ") | dim;
-
         auto info_bar = hbox({
             text(" Randomise: ") | dim,
-            randomise_el,
-            text("  ") | dim,
-            separator(),
-            text("  ") | dim,
+            state.randomise
+                ? text(" ON ") | color(Color::Green) | bold
+                : text(" OFF ") | dim,
+            text("  ") | dim, separator(), text("  ") | dim,
             text(std::to_string(state.questions.size())) | bold,
             text(" questions") | dim,
-            text("  ") | dim,
-            separator(),
-            text("  ") | dim,
+            text("  ") | dim, separator(), text("  ") | dim,
             text(state.filename) | dim,
             filler(),
             text(has_changes ? " modified " : "") | color(Color::Yellow) | dim,
@@ -138,7 +128,7 @@ ftxui::Component make_menu_screen(AppState& state)
 
         Elements content;
         content.push_back(text(""));
-        content.push_back(text(" Certamen ") | bold | center);
+        content.push_back(render_banner());
         content.push_back(text(""));
         content.push_back(separator() | color(Color::GrayDark));
         content.push_back(text(""));

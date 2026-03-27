@@ -19,8 +19,7 @@ ftxui::Component make_set_metadata_screen(AppState& state)
     }, ButtonOption::Simple());
 
     auto cancel_btn = Button(" Cancel ", [&] {
-        state.current_screen = AppScreen::MENU;
-        state.status_message.clear();
+        state.return_to_menu();
     }, ButtonOption::Simple());
 
     auto action_row = Container::Horizontal({save_btn, cancel_btn});
@@ -30,8 +29,7 @@ ftxui::Component make_set_metadata_screen(AppState& state)
     auto component = CatchEvent(inner, [&](Event event) {
         if (event == Event::Escape)
         {
-            state.current_screen = AppScreen::MENU;
-            state.status_message.clear();
+            state.return_to_menu();
             return true;
         }
         return false;
