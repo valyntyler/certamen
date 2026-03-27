@@ -1,5 +1,6 @@
 #include "screens/remove_question.hpp"
 #include "app.hpp"
+#include "nav.hpp"
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -8,32 +9,11 @@ using namespace ftxui;
 
 ftxui::Component make_remove_question_screen(AppState& state)
 {
-    auto focusable = Renderer([](bool) { return text(""); });
-
-    auto component = CatchEvent(focusable, [&](Event event) {
+    auto component = CatchEvent(Renderer([](bool) { return text(""); }), [&](Event event) {
         if (state.questions.empty()) return false;
         int count = static_cast<int>(state.questions.size());
-
-        if (event == Event::ArrowUp || event == Event::Character('k'))
-        {
-            if (state.remove_question_idx > 0) state.remove_question_idx--;
-            return true;
-        }
-        if (event == Event::ArrowDown || event == Event::Character('j'))
-        {
-            if (state.remove_question_idx < count - 1) state.remove_question_idx++;
-            return true;
-        }
-        if (event.is_character())
-        {
-            char ch = event.character()[0];
-            int num = ch - '1';
-            if (num >= 0 && num < count)
-            {
-                state.remove_question_idx = num;
-                return true;
-            }
-        }
+        if (nav_up_down(event, state.remove_question_idx, count)) return true;
+        if (nav_numeric(event, state.remove_question_idx, count)) return true;
         if (event == Event::Return)
         {
             state.questions.erase(state.questions.begin() + state.remove_question_idx);
@@ -49,8 +29,7 @@ ftxui::Component make_remove_question_screen(AppState& state)
         }
         if (event == Event::Escape || event == Event::Character('b'))
         {
-            state.current_screen = AppScreen::MENU;
-            state.status_message.clear();
+            state.return_to_menu();
             return true;
         }
         return false;

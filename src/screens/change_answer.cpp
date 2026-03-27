@@ -1,5 +1,6 @@
 #include "screens/change_answer.hpp"
 #include "app.hpp"
+#include "nav.hpp"
 #include "syntax.hpp"
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
@@ -9,34 +10,14 @@ using namespace ftxui;
 
 ftxui::Component make_change_answer_screen(AppState& state)
 {
-    auto focusable = Renderer([](bool) { return text(""); });
-
-    auto component = CatchEvent(focusable, [&](Event event) {
+    auto component = CatchEvent(Renderer([](bool) { return text(""); }), [&](Event event) {
         if (state.questions.empty()) return false;
 
         if (state.change_answer_phase == 0)
         {
             int count = static_cast<int>(state.questions.size());
-            if (event == Event::ArrowUp || event == Event::Character('k'))
-            {
-                if (state.select_question_idx > 0) state.select_question_idx--;
-                return true;
-            }
-            if (event == Event::ArrowDown || event == Event::Character('j'))
-            {
-                if (state.select_question_idx < count - 1) state.select_question_idx++;
-                return true;
-            }
-            if (event.is_character())
-            {
-                char ch = event.character()[0];
-                int num = ch - '1';
-                if (num >= 0 && num < count)
-                {
-                    state.select_question_idx = num;
-                    return true;
-                }
-            }
+            if (nav_up_down(event, state.select_question_idx, count)) return true;
+            if (nav_numeric(event, state.select_question_idx, count)) return true;
             if (event == Event::Return)
             {
                 state.change_answer_phase = 1;
@@ -48,27 +29,8 @@ ftxui::Component make_change_answer_screen(AppState& state)
         {
             const auto& q = state.questions[state.select_question_idx];
             int num_choices = static_cast<int>(q.choices.size());
-
-            if (event == Event::ArrowUp || event == Event::Character('k'))
-            {
-                if (state.select_new_answer > 0) state.select_new_answer--;
-                return true;
-            }
-            if (event == Event::ArrowDown || event == Event::Character('j'))
-            {
-                if (state.select_new_answer < num_choices - 1) state.select_new_answer++;
-                return true;
-            }
-            if (event.is_character())
-            {
-                char ch = event.character()[0];
-                int num = ch - '1';
-                if (num >= 0 && num < num_choices)
-                {
-                    state.select_new_answer = num;
-                    return true;
-                }
-            }
+            if (nav_up_down(event, state.select_new_answer, num_choices)) return true;
+            if (nav_numeric(event, state.select_new_answer, num_choices)) return true;
             if (event == Event::Return)
             {
                 state.questions[state.select_question_idx].answer = state.select_new_answer;
@@ -83,10 +45,7 @@ ftxui::Component make_change_answer_screen(AppState& state)
             if (state.change_answer_phase == 1)
                 state.change_answer_phase = 0;
             else
-            {
-                state.current_screen = AppScreen::MENU;
-                state.status_message.clear();
-            }
+                state.return_to_menu();
             return true;
         }
 
@@ -151,10 +110,9 @@ ftxui::Component make_change_answer_screen(AppState& state)
             {
                 bool is_current = (i == q.answer);
                 bool is_new = (i == state.select_new_answer);
-                std::string marker = is_new ? " > " : "   ";
 
                 auto choice_el = hbox({
-                    text(marker),
+                    text(is_new ? " > " : "   "),
                     text(std::to_string(i + 1) + ". "),
                     text(q.choices[i]) | (is_new ? bold : nothing),
                     text(is_current ? "  (current)" : "") | dim,

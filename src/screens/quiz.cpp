@@ -1,5 +1,6 @@
 #include "screens/quiz.hpp"
 #include "app.hpp"
+#include "nav.hpp"
 #include "syntax.hpp"
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
@@ -20,7 +21,6 @@ static std::string format_pct(int correct, int total)
 
 ftxui::Component make_quiz_screen(AppState& state)
 {
-    // Invisible placeholde needed so Container::Tab routes events here
     auto focusable = Renderer([](bool) { return text(""); });
 
     auto component = CatchEvent(focusable, [&](Event event) {
@@ -33,26 +33,8 @@ ftxui::Component make_quiz_screen(AppState& state)
 
         if (!state.quiz_answered)
         {
-            if (event == Event::ArrowUp || event == Event::Character('k'))
-            {
-                if (state.quiz_selected > 0) state.quiz_selected--;
-                return true;
-            }
-            if (event == Event::ArrowDown || event == Event::Character('j'))
-            {
-                if (state.quiz_selected < num_choices - 1) state.quiz_selected++;
-                return true;
-            }
-            if (event.is_character())
-            {
-                char ch = event.character()[0];
-                int num = ch - '1';
-                if (num >= 0 && num < num_choices)
-                {
-                    state.quiz_selected = num;
-                    return true;
-                }
-            }
+            if (nav_up_down(event, state.quiz_selected, num_choices)) return true;
+            if (nav_numeric(event, state.quiz_selected, num_choices)) return true;
             if (event == Event::Return)
             {
                 state.quiz_answered = true;
@@ -77,8 +59,7 @@ ftxui::Component make_quiz_screen(AppState& state)
 
         if (event == Event::Escape || event == Event::Character('q'))
         {
-            state.current_screen = AppScreen::MENU;
-            state.status_message.clear();
+            state.return_to_menu();
             return true;
         }
 

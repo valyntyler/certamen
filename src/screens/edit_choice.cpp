@@ -1,5 +1,6 @@
 #include "screens/edit_choice.hpp"
 #include "app.hpp"
+#include "nav.hpp"
 #include "syntax.hpp"
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
@@ -48,26 +49,8 @@ ftxui::Component make_edit_choice_screen(AppState& state)
         if (state.edit_choice_phase == 0)
         {
             int count = static_cast<int>(state.questions.size());
-            if (event == Event::ArrowUp || event == Event::Character('k'))
-            {
-                if (state.edit_choice_question_idx > 0) state.edit_choice_question_idx--;
-                return true;
-            }
-            if (event == Event::ArrowDown || event == Event::Character('j'))
-            {
-                if (state.edit_choice_question_idx < count - 1) state.edit_choice_question_idx++;
-                return true;
-            }
-            if (event.is_character())
-            {
-                char ch = event.character()[0];
-                int num = ch - '1';
-                if (num >= 0 && num < count)
-                {
-                    state.edit_choice_question_idx = num;
-                    return true;
-                }
-            }
+            if (nav_up_down(event, state.edit_choice_question_idx, count)) return true;
+            if (nav_numeric(event, state.edit_choice_question_idx, count)) return true;
             if (event == Event::Return)
             {
                 state.edit_choice_phase = 1;
@@ -79,27 +62,8 @@ ftxui::Component make_edit_choice_screen(AppState& state)
         {
             const auto& q = state.questions[state.edit_choice_question_idx];
             int num_choices = static_cast<int>(q.choices.size());
-
-            if (event == Event::ArrowUp || event == Event::Character('k'))
-            {
-                if (state.edit_choice_choice_idx > 0) state.edit_choice_choice_idx--;
-                return true;
-            }
-            if (event == Event::ArrowDown || event == Event::Character('j'))
-            {
-                if (state.edit_choice_choice_idx < num_choices - 1) state.edit_choice_choice_idx++;
-                return true;
-            }
-            if (event.is_character())
-            {
-                char ch = event.character()[0];
-                int num = ch - '1';
-                if (num >= 0 && num < num_choices)
-                {
-                    state.edit_choice_choice_idx = num;
-                    return true;
-                }
-            }
+            if (nav_up_down(event, state.edit_choice_choice_idx, num_choices)) return true;
+            if (nav_numeric(event, state.edit_choice_choice_idx, num_choices)) return true;
             if (event == Event::Return)
             {
                 state.edit_choice_text = q.choices[state.edit_choice_choice_idx];
@@ -113,10 +77,7 @@ ftxui::Component make_edit_choice_screen(AppState& state)
             if (state.edit_choice_phase == 1)
                 state.edit_choice_phase = 0;
             else
-            {
-                state.current_screen = AppScreen::MENU;
-                state.status_message.clear();
-            }
+                state.return_to_menu();
             return true;
         }
 
@@ -142,7 +103,7 @@ ftxui::Component make_edit_choice_screen(AppState& state)
             body.push_back(text(" Edit Choice ") | bold | center);
             body.push_back(text(""));
             body.push_back(separator() | color(Color::GrayDark));
-            body.push_back(text("")); // as many as possibleeee
+            body.push_back(text(""));
 
             for (int i = 0; i < static_cast<int>(state.questions.size()); ++i)
             {
