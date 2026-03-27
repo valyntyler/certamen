@@ -12,6 +12,8 @@
   Made with love by [trintlermint](#credits).
   
   ## Author *Quizzes* and seamlessly "test" yourself in a full-screen TUI; host the game over SSH for you and your friends to play!
+  > [!TIP]
+  >
   > This way, you get to make fun of their... incredibly (lacking) haskell knowledge for example!
   ### Releases
   [![Release](https://img.shields.io/github/v/release/trintlermint/certamen?label=linux%20compatible&color=success)](https://github.com/trintlermint/certamen/releases/latest)
@@ -65,7 +67,7 @@ You also need a **C++17 compiler (GCC >= 8 or Clang >= 7)** and **CMake >= 3.14*
 
 ### CMake (recommended)
 
-**Ubuntu / Deb:**
+**Ubuntu / Debian:**
 
 ```bash
 sudo apt-get install build-essential cmake libyaml-cpp-dev libssh-dev
@@ -84,8 +86,6 @@ sudo pacman -S base-devel cmake yaml-cpp libssh
 ```
 
 > Or any other equivalent function to install these packages on your machine.
-
-> [macOS and Windows](#macos-and-windows) explained further below.
 
 Next, clone and build:
 
@@ -131,7 +131,9 @@ cmake --preset release
 cmake --build --preset release
 ```
 
-> REMARK: I am NOT a macOS OR Windows user; Manuals told me this should work, if it does or doesn't please inform me on Github Issues! See [CONTRIBUTING.md](CONTRIBUTING.md)
+> [!WARN]
+>
+> I am NOT a macOS OR Windows user; Manuals told me this should work, if it does or doesn't please inform me on Github Issues! See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
@@ -177,7 +179,9 @@ Players connect with `ssh -p <port> <name>@<host>` and get the same TUI in an *i
 | `--key <path>` | `certamen_host_rsa` | RSA host key (auto gen on first run) |
 | `--max-clients <N>` | 8 | Concurrent connection limit |
 
-> Full server shell documentation: **[SERVING.md](SERVING.md)**.
+> [!IMPORTANT]
+>
+> Full server shell documentation: **[SERVING.md](SERVING.md)**. Also, password is currently having issues currently.
 
 ---
 
@@ -270,7 +274,7 @@ Certamen is built on:
 
 A big thank you to all frameworks used, and my friends for emotional support and motivation, specifically [@valyntyler](https://github.com/valyntyler)
 
-The name **Certamen** is Latin for "contest" so I thought "yeah! this works!" thank you [Wikipedia](https://en.wikipedia.org/wiki/Certamen)
+The name **Certamen** is Latin for "contest" so I thought "yeah! this works!" thank you [Wikipedia](https://en.wikipedia.org/wiki/Certamen).
 
 ---
 
