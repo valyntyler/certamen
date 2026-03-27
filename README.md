@@ -1,146 +1,260 @@
 <div align="center">
-  <img src="peanuts-quiz.png" alt="Quizzer Banner"/>
   
-  # Quizzer
-  
-  **CLI App for Quizzes. Gives You the Ability to Create, Edit, share your own quizzes and practice with them using .YAML**
-  
+  # Certamen
+
+  A *Terminal User Interface* **Quiz Game Engine** written entirely in C++ using [Dependencies](#dependencies) with Love by [trintlermint](#credits).
+  Author *Quizzes* and seamlessly test yourself or others in a full-screen TUI; host them over SSH for you and your friends to play! (this way, you get to make fun of their... haskell knowledge for example!)
+
   [![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
-  [![Platform: Linux](https://img.shields.io/badge/Platform-Linux-lightgrey.svg)](https://www.linux.org/)
-  [![Dependency: yaml-cpp](https://img.shields.io/badge/yaml--cpp-0.7.0-orange.svg)](https://github.com/jbeder/yaml-cpp)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
+
+  Charlie Brown aces his tests with this!
+  <img src="peanuts-quiz.png" alt="certamen-banner"/>
   <br />
 </div>
 
 ## Table of Contents
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Building from Source](#building-from-source)
+
+- [Building](#building)
+  - [Dependencies](#dependencies)
+  - [CMake (recommended)](#cmake-recommended)
+  - [Manual compilation](#manual-compilation)
+  - [macOS and Windows](#macos-and-windows)
 - [Usage](#usage)
-  - [Question Formatting](#question-formatting)
+  - [Local mode](#local-mode)
+  - [SSH server mode](#ssh-server-mode)
+- [Quiz format](#quiz-format)
 - [Troubleshooting](#troubleshooting)
+- [Credits](#credits)
+- [License](#license)
 
 ---
 
-## Getting Started
+## Building
 
-### Prerequisites
+### Dependencies
 
-To build Quizzer on Linux, you will need:
-- A **C++17** compatible toolchain ([GCC](https://gcc.gnu.org/) or [Clang](https://clang.llvm.org/))
-- [**CMake**](https://cmake.org/) (>= 3.12)
-- [**yaml-cpp**](https://github.com/jbeder/yaml-cpp) (Development package)
+Certamen uses these predominant three libraries:
 
-> Remark: You do not have to strictly maintain this versioning, however this is what  I have personally tested on.
-### Building from Source
+| Library | Version | Install |
+|---------|---------|---------|
+| [FTXUI](https://github.com/ArthurSonzogni/FTXUI) | v6.1.9 | Fetched automatically by CMake via `FetchContent` |
+| [yaml-cpp](https://github.com/jbeder/yaml-cpp) | >= 0.7 | System package required |
+| [libssh](https://www.libssh.org/) | >= 0.9 | System package required |
 
-**1. Install Dependencies (Ubuntu/Debian)**
+You also need a **C++17 compiler (GCC >= 8 or Clang >= 7)** and **CMake >= 3.14**.
+
+### CMake (recommended)
+
+**Ubuntu / Deb:**
+
 ```bash
-sudo apt-get update
-sudo apt-get install -y build-essential cmake libyaml-cpp-dev
+sudo apt-get install build-essential cmake libyaml-cpp-dev libssh-dev
 ```
 
-**2. Clone and Build**
-```bash
-git clone https://github.com/trintlermint/quizzer.git
-cd quizzer
+**Fedora / RHEL:**
 
-mkdir -p build && cd build
-cmake ..
-cmake --build . --config Release
+```bash
+sudo dnf install gcc-c++ cmake yaml-cpp-devel libssh-devel
 ```
 
-**3. Run**
-```bash
-./bin/quizzer ../quiz.yaml
-```
-*(If run without arguments, it defaults to looking for `./quiz.yaml`)*
+**Arch Linux (AUR):**
 
-> **Alternative Manual Compilation:**  
-> If `yaml-cpp` is installed system-wide, you can compile directly without CMake:
-> ```bash
-> g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 main.cpp -lyaml-cpp -o quizzer
-> ```
+```bash
+sudo pacman -S base-devel cmake yaml-cpp libssh
+```
+
+> Or any other equivalent function to install these packages on your machine.
+
+> [macOS and Windows](#macos-and-windows) explained further below.
+
+Next, clone and build:
+
+```bash
+git clone https://github.com/trintlermint/certamen.git
+cd certamen
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+The binary compiles into an executable, stored at `build/bin/certamen`. Run:
+
+```bash
+./build/bin/certamen ./example_quiz.yaml
+```
+
+Without arguments it looks for `./quiz.yaml` in the current working directory being run from.
+
+### Manual compilation (CLI)
+
+If yaml-cpp are installed system-wide and you want to skip CMake entirely, you can compile the CLI, the CLI is the previously, originally known "quizzer" app; faithfully renamed.
+
+```bash
+g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 main.cpp -lyaml-cpp -o certamen
+```
+
+> This builds a local-only binary without the TUI or SSH server. Use the CMake build for the included features.
+
+### macOS and Windows
+
+**macOS** (using Homebrew):
+
+```bash
+brew install cmake yaml-cpp libssh
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+**Windows** (using vcpkg + MSVC):
+
+```bash
+cmake --preset release
+cmake --build --preset release
+```
+
+> REMARK: I am NOT a macOS OR Windows user; Manuals told me this should work, if it does or doesn't please inform me on Github Issues! See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+> See [RELEASES.md](RELEASES.md) for CI-driven cross-platform builds via GitHub Actions. (tbd)
 
 ---
 
 ## Usage
 
-Once launched, Quizzer will attempt to load the target YAML file. If it doesn't exist or is empty, Quizzer initializes a fresh workspace. 
+### Offline User Mode
 
-From the main menu, you can navigate via standard numeric inputs:
-1. **Take Quiz** 
-2. **Add Question** 
-3. **Remove Question** 
-4. **Change Answer** 
-5. **List Questions** 
-6. **Save and Exit** 
+```bash
+certamen quiz.yaml
+```
 
-**Adding Code Snippets & Explanations:**
-When adding a new question interactively, the CLI will ask: `Include a code snippet? (y/n)`. 
-If you choose `y`, simply paste your multi-line code into the terminal. To finish the block, type a single line containing only the word `END`. The exact same workflow applies to adding explanations!
-> The same applies for `explain`.
+The TUI presents a menu with keyboard navigation:
+
+1. *Take Quiz*; answer questions (`bool: randomiser`), get scored at the end
+2. *Add Question*; compose a question with choices, optional code snippet, and explanation
+3. *Remove Question*; delete a question
+4. *Change Answer*; update the correct answer for an existing question
+5. *List Questions*; browse all questions with toggleable answers, code, and explanations
+6. *Save and Exit*; write changes back to the open YAML file.
+7. *Quit without Saving*; write no changes back, quit the program.
+
+> Press `R` on the main menu to toggle randomized question *and* answer order (chore: use /dev/urandom?).
+
+> On quit, Certamen shows a diff of unsaved changes so nothing is lost by accident.
+> I am working on adding "Change Choice" and implementing that inside Change Answer.
+
+### SSH server mode
+
+Host a quiz for others to connect to with any SSH client:
+
+```bash
+certamen serve quiz.yaml                                  # default
+certamen serve --password mysecret --port 2222 quiz.yaml  # port and pass
+certamen serve --port 3000 algebra.yaml history.yaml      # port, max client
+```
+
+Players connect with `ssh -p <port> <name>@<host>` and get the same TUI in an *isolated* "quiz" session. The server logs scores per player.
+
+| Flag | Default | Desc |
+|------|---------|-------------|
+| `--port <N>` | 2222 | TCP listen port |
+| `--password <pw>` | *(open)* | Require password authentication |
+| `--key <path>` | `certamen_host_rsa` | RSA host key (auto gen on first run) |
+| `--max-clients <N>` | 8 | Concurrent connection limit |
+
+> Full server shell documentation: **[SERVING.md](SERVING.md)**.
 
 ---
 
-## Question Formatting
+## Quiz format
 
-Quizzer stores your questions in a straightforward YAML sequence and stores these as properties of the question.
+Quizzes are YAML files. Each question is a map in a top-to-down sequence:
 
 ```yaml
-- question: "In Python, what is the time complexity of the following code?"
-  explain: |
-    See that there exist two running indices (i & j).
-    Therefore, this has the time-complexity of O(n^2)
-  code: |
-    def function(n):
-        result = 0
-        for i in range(n):
-            for j in range(i, n):
-                result += 1
-        return result
+- question: "What is the time complexity of binary search?"
   choices:
     - "O(n)"
+    - "O(log n)"
     - "O(n log n)"
-    - "O(n^2)"
-    - "O(n^3)"
-  answer: 2
-
+    - "O(1)"
+  answer: 1
+  code: |
+    int bsearch(int* a, int n, int target) {
+        int lo = 0, hi = n - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) / 2;
+            if (a[mid] == target) return mid;
+            else if (a[mid] < target) lo = mid + 1;
+            else hi = mid - 1;
+        }
+        return -1;
+    }
+  explain: |
+    Each iteration halves the search space.
+    After k iterations the range is n/2^k, which reaches 1 when k = log2(n).
 ```
 
-> **Remark:** 
-> - `answer` is **0-based** in the YAML file, but the CLI automatically translates this to a **1-based** index.
-> - The `code` and `explain` block is entirely optional, and can be added. When provided, it is visually separated in the terminal output.
-> - see example file `example_quiz.yaml` for a template you can edit/the desired formatting.
+- `question`, `choices` >= 2, and `answer` are required. `code` and `explain` are optional.
+- `answer` is a *0-based* index into `choices`. The TUI displays 1-based numbering to the player.
+- `language` is an optional field for syntax highlight hinting (e.g. `language: haskell`) (see `syntax.cpp` for what has been implemented thus far).
+
+> See [`example_quiz.yaml`](example_quiz.yaml) for a working template and helping me stop writing stuff.
+
 ---
 
 ## Troubleshooting
 
 <details>
-<summary><b>Missing <code>yaml-cpp</code> dependency</b></summary>
+<summary><b>Missing yaml-cpp headers</b></summary>
 <br/>
-If your compiler complains about missing YAML headers, ensure you have the dev package installed:
+Install the development package for your distribution:
 <ul>
   <li><b>Debian/Ubuntu:</b> <code>sudo apt-get install libyaml-cpp-dev</code></li>
   <li><b>Fedora/RHEL:</b> <code>sudo dnf install yaml-cpp-devel</code></li>
+  <li><b>Arch:</b> <code>sudo pacman -S yaml-cpp</code></li>
 </ul>
 </details>
 
 <details>
-<summary><b>Unable to save (Permission Denied)</b></summary>
+<summary><b>Missing libssh headers</b></summary>
 <br/>
-Check the write permissions of the directory and the target YAML file. Quizzer requires write access to serialize the updated state back to disk.
+<ul>
+  <li><b>Debian/Ubuntu:</b> <code>sudo apt-get install libssh-dev</code></li>
+  <li><b>Fedora/RHEL:</b> <code>sudo dnf install libssh-devel</code></li>
+  <li><b>Arch:</b> <code>sudo pacman -S libssh</code></li>
+</ul>
 </details>
 
 <details>
-<summary><b>Invalid YAML Parsing Errors</b></summary>
+<summary><b>Permission denied when saving</b></summary>
 <br/>
-Ensure your manually edited YAML follows the correct schema: it must be a sequence (list) of maps (dictionaries). Required keys are <code>question</code>, <code>choices</code>, and <code>answer</code>. <code>code</code> and <code>explanation</code> are optional.
+Certamen needs write access to the YAML file and its parent directory. Check ownership and permissions (varies based on OS).
+</details>
+
+<details>
+<summary><b>YAML parse errors</b></summary>
+<br/>
+The file must be a YAML sequence of maps. Required keys per entry: <code>question</code>, <code>choices</code>, <code>answer</code>. Optional: <code>code</code>, <code>explain</code>, <code>language</code>. See `example_quiz.yaml` for more details.
 </details>
 
 ---
 
-<div align="center">
-  Made by <a href="https://github.com/trintlermint">@trintlermint</a>. <br/>
-  If you found this project useful, consider leaving a star, or even better: write an issue with the problems you faced or any feedback!
-</div>
+## Credits
+
+Written by [trintlermint](https://github.com/trintlermint).
+
+Certamen is built on:
+
+- [FTXUI](https://github.com/ArthurSonzogni/FTXUI) by Arthur Sonzogni, terminal UI framework
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp) by Jesse Beder, YAML parser
+- [libssh](https://www.libssh.org/),  SSH protocol implementation (THANK YOU DOCUMENTATION)
+
+A big thank you to all frameworks used, and my friends for emotional support and motivation, specifically [@valyntyler](https://github.com/valyntyler)
+
+The name **Certamen** is Latin for "contest" so I thought "yeah! this works!" thank you [Wikipedia](https://en.wikipedia.org/wiki/Certamen)
+
+---
+
+## License
+
+[<img src="./brainmade-org.png" alt="brainmade.org"](https://brainmade.org)
+MIT; See [LICENSE.md](LICENSE.md).
+Copyright 2026 Niladri Adhikary.
