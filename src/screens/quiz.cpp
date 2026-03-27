@@ -98,6 +98,24 @@ ftxui::Component make_quiz_screen(AppState& state)
 
         float progress = static_cast<float>(idx) / static_cast<float>(total);
 
+        Elements header_lines;
+
+        if (!state.quiz_name.empty() || !state.quiz_author.empty())
+        {
+            Elements meta_row;
+            if (!state.quiz_name.empty())
+                meta_row.push_back(text(" " + state.quiz_name + " ") | bold);
+            if (!state.quiz_author.empty())
+            {
+                if (!state.quiz_name.empty())
+                    meta_row.push_back(text(" "));
+                meta_row.push_back(text("by " + state.quiz_author) | dim);
+            }
+            meta_row.push_back(filler());
+            header_lines.push_back(hbox(std::move(meta_row)));
+            header_lines.push_back(separator() | color(Color::GrayDark));
+        }
+
         auto header = hbox({
             text(" Q") | dim,
             text(std::to_string(idx + 1)) | bold | color(Color::Cyan),
@@ -188,10 +206,13 @@ ftxui::Component make_quiz_screen(AppState& state)
             body.push_back(text(" j/k navigate  1-9 select  Enter submit  q quit ") | dim | center);
         }
 
-        return vbox({
-            header,
-            separator() | color(Color::GrayDark),
-            vbox(std::move(body)) | vscroll_indicator | frame | flex,
-        }) | borderRounded;
+        Elements outer;
+        for (auto& hl : header_lines)
+            outer.push_back(std::move(hl));
+        outer.push_back(header);
+        outer.push_back(separator() | color(Color::GrayDark));
+        outer.push_back(vbox(std::move(body)) | vscroll_indicator | frame | flex);
+
+        return vbox(std::move(outer)) | borderRounded;
     });
 }

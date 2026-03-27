@@ -1,5 +1,6 @@
 #include "screens/save_confirm.hpp"
 #include "app.hpp"
+#include "model.hpp"
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/screen_interactive.hpp>
@@ -12,7 +13,11 @@ ftxui::Component make_save_confirm_screen(AppState& state, ftxui::ScreenInteract
     auto save_btn = Button(" Save and Exit ", [&] {
         try
         {
-            save_questions(state.questions, state.filename);
+            QuizFile quiz;
+            quiz.name      = state.quiz_name;
+            quiz.author    = state.quiz_author;
+            quiz.questions = state.questions;
+            save_quiz(quiz, state.filename);
             screen.Exit();
         }
         catch (const std::exception& e)
