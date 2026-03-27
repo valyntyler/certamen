@@ -1,0 +1,59 @@
+name: CMake on multiple platforms
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        build_type: [Release]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential libyaml-cpp-dev libssh-dev
+
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install cmake yaml-cpp libssh
+
+      - name: Install vcpkg (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
+          appendedCacheKey: ${{ hashFiles( '**/CMakeLists.txt' ) }}
+          vcpkgGitCommitId: '26c51502faedb3a63661f8082e4ea81b0fa98e34'
+
+      - name: Configure CMake (Unix)
+        if: matrix.os != 'windows-latest'
+        run: >
+          cmake
+          --preset release
+
+      - name: Configure CMake (Windows with vcpkg toolchain)
+        if: matrix.os == 'windows-latest'
+        run: >
+          cmake
+          --preset release
+          -DVCPKG_MANIFEST_MODE=OFF
+          -DVCPKG_TOOLCHAIN=${{ runner.workspace }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        run: cmake --build --preset release
+
+      - name: Test
+        if: matrix.os != 'windows-latest'
+        run: ctest --test-dir build --output-on-failure
