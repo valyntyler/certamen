@@ -6,6 +6,7 @@
   <img src="assets/2.png" width="32%" alt="Demo 2">
   <img src="assets/3.png" width="32%" alt="Demo 3">
   </p>
+  
   A *Terminal User Interface* **Quiz Game Engine** written entirely in C++ using these [dependencies](#dependencies).
 
   Made with love by [trintlermint](#credits).
