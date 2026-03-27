@@ -1,57 +1,64 @@
-# WARN: Read Question Formatting in README.md before editing this file to understand how to run and use the script and the questions.
-- question: Which of the Haskell functions below can calculate the Euclidean norm sqrt(a^2 + b^2)?
-  code: |
-    nrm1 :: Double -> Double -> Double
-    nrm1 a b = sqrt (a^2 + b^2)
+name: Certamen DEMO
+author: trintlermint
+questions:
+  - question: Which of the Haskell functions below can calculate the Euclidean norm sqrt(a^2 + b^2)?
+    code: |
+      nrm1 :: Double -> Double -> Double
+      nrm1 a b = sqrt (a^2 + b^2)
 
-    nrm2 :: (Double, Double) -> Double
-    nrm2 (a, b) = sqrt (a^2 + b^2)
+      nrm2 :: (Double, Double) -> Double
+      nrm2 (a, b) = sqrt (a^2 + b^2)
 
-  explain: |
-    Both definitions compute sqrt (a^2 + b^2), one by separate arguments and one by a tuple, using only sqrt and (^).
-  choices:
-    - Only nrm1 is a correct implementation.
-    - Only nrm2 is a correct implementation.
-    - nrm1 and nrm2 are both correct implementations.
-    - nrm1 and nrm2 are both incorrect implementations.
-  answer: 2
-- question: Is the else part in a Haskell if expression mandatory?
-  explain: |
-    Haskell's if is an expression and requires both then and else branches.
-  choices:
-    - No, guards can replace it so it may be omitted.
-    - No, it can be omitted if the condition always holds.
-    - Yes, if-expressions must produce a value in both branches.
-    - Haskell has no if; only pattern matching is allowed.
-  answer: 2
-- question: How is otherwise defined in guards?
-  explain: |
-    otherwise is a synonym for True.
-  choices:
-    - otherwise x = x
-    - otherwise = (==)
-    - otherwise = True
-    - otherwise = False
-  answer: 2
-- question: What is the type of h?
-  code: |
-    h ("*",y) = (y, (y,y))
-    h (x,y)   = (y, (x,y))
+    explain: |
+      Both definitions compute sqrt (a^2 + b^2), one by separate arguments and one by a tuple, using only sqrt and (^).
 
-  explain: |
-    The first clause fixes the first component to a String, and the result nests (y,(x,y)) where x can be any type; thus ([Char], a) -> (a, ([Char],[Char])) is correct.
-  choices:
-    - "h :: ([Char], a) -> (a, ([Char], [Char]))"
-    - "h :: [a] -> [[a]]"
-    - "h :: ([Char], [Char]) -> ([Char], ([Char], [Char]))"
-    - "h :: (a, a) -> (a, a)"
-  answer: 0
-- question: Which representation can store a name and an age?
-  explain: |
-    Tuples allow heterogeneous components; lists must be homogeneous, so only the tuple is valid.
-  choices:
-    - Only ("John", 42)
-    - Only ["John", 42]
-    - Both are acceptable
-    - Neither is acceptable
-  answer: 0
+    choices:
+      - Only nrm1 is a correct implementation.
+      - Only nrm2 is a correct implementation.
+      - nrm1 and nrm2 are both correct implementations.
+      - nrm1 and nrm2 are both incorrect implementations.
+    answer: 2
+  - question: Is the else part in a Haskell if expression mandatory?
+    explain: |
+      Haskell's if is an expression and requires both then and else branches.
+
+    choices:
+      - No, guards can replace it so it may be omitted.
+      - No, it can be omitted if the condition always holds.
+      - Yes, if-expressions must produce a value in both branches.
+      - Haskell has no if; only pattern matching is allowed.
+    answer: 2
+  - question: How is otherwise defined in guards?
+    explain: |
+      otherwise is a synonym for True.
+
+    choices:
+      - otherwise x = x
+      - otherwise = (==)
+      - otherwise = True
+      - otherwise = False
+    answer: 2
+  - question: What is the type of h?
+    code: |
+      h ("*",y) = (y, (y,y))
+      h (x,y)   = (y, (x,y))
+
+    explain: |
+      The first clause fixes the first component to a String, and the result nests (y,(x,y)) where x can be any type; thus ([Char], a) -> (a, ([Char],[Char])) is correct.
+
+    choices:
+      - "h :: ([Char], a) -> (a, ([Char], [Char]))"
+      - "h :: [a] -> [[a]]"
+      - "h :: ([Char], [Char]) -> ([Char],([Char], [Char]))"
+      - "h :: (a, a) -> (a, a)"
+    answer: 0
+  - question: Which representation can store a name and an age?
+    explain: |
+      Tuples allow heterogeneous components; lists must be homogeneous, so only the tuple is valid.
+
+    choices:
+      - Only ("John", 42)
+      - Only ["John", 42]
+      - Both are acceptable
+      - Neither is acceptable
+    answer: 0
