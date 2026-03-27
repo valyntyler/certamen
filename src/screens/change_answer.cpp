@@ -110,10 +110,15 @@ ftxui::Component make_change_answer_screen(AppState& state)
             for (int i = 0; i < static_cast<int>(state.questions.size()); ++i)
             {
                 bool sel = (i == state.select_question_idx);
+                const auto& q = state.questions[i];
+                std::string answer_hint = "  [" +
+                    std::to_string(q.answer + 1) + ": " +
+                    q.choices[q.answer] + "]";
                 auto entry = hbox({
                     text(sel ? " > " : "   "),
                     text(std::to_string(i + 1) + ". ") | dim,
-                    text(state.questions[i].question) | (sel ? bold : nothing),
+                    text(q.question) | (sel ? bold : nothing),
+                    text(answer_hint) | dim | color(Color::Green),
                 });
                 if (sel) entry = entry | color(Color::Cyan);
                 body.push_back(entry);
