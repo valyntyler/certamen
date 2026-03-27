@@ -1,7 +1,7 @@
 <div align="center">
   
   # CERTAMEN
-  <p align="center">
+  <p>
   <img src="assets/1.png" width="32%" alt="Demo 1">
   <img src="assets/2.png" width="32%" alt="Demo 2">
   <img src="assets/3.png" width="32%" alt="Demo 3">
