@@ -1,0 +1,135 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    name: Build on Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+      run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build build-essential libyaml-cpp-dev libssh-dev pkg-config
+
+      - name: Configure
+        run: cmake --preset release
+
+      - name: Build
+        run: cmake --build --preset release --config Release
+
+      - name: Package
+        run: |
+          mkdir -p certamen-linux-x64
+          cp build/bin/certamen certamen-linux-x64/
+          cp example_quiz.yaml certamen-linux-x64/
+          tar -czf certamen-linux-x64.tar.gz certamen-linux-x64/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: certamen-linux-x64
+          path: certamen-linux-x64.tar.gz
+
+  build-macos:
+    name: Build on macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install cmake ninja yaml-cpp libssh pkg-config
+
+      - name: Configure
+        run: >
+          cmake --preset release
+          -DCMAKE_PREFIX_PATH="$(brew --prefix yaml-cpp);$(brew --prefix libssh)"
+
+      - name: Build
+        run: cmake --build --preset release --config Release
+
+      - name: Package
+        run: |
+          mkdir -p certamen-macos-x64
+          cp build/bin/certamen certamen-macos-x64/
+          cp example_quiz.yaml certamen-macos-x64/
+          tar -czf certamen-macos-x64.tar.gz certamen-macos-x64/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: certamen-macos-x64
+          path: certamen-macos-x64.tar.gz
+
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
+          appendedCacheKey: ${{ hashFiles('vcpkg.json', 'CMakeLists.txt', 'CMakePresets.json') }}
+          vcpkgGitCommitId: '26c51502faedb3a63661f8082e4ea81b0fa98e34'
+
+      - name: Configure
+        shell: powershell
+        run: >
+          cmake --preset release
+          -DCMAKE_TOOLCHAIN_FILE="${{ runner.workspace }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build
+        run: cmake --build --preset release --config Release
+
+      - name: Package
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Path certamen-windows-x64 -Force | Out-Null
+          Copy-Item build/bin/certamen.exe certamen-windows-x64/
+          Copy-Item example_quiz.yaml certamen-windows-x64/
+          Compress-Archive -Path certamen-windows-x64 -DestinationPath certamen-windows-x64.zip -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: certamen-windows-x64
+          path: certamen-windows-x64.zip
+
+  create-release:
+    name: Create Release
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-artifacts/certamen-linux-x64/certamen-linux-x64.tar.gz
+            release-artifacts/certamen-macos-x64/certamen-macos-x64.tar.gz
+            release-artifacts/certamen-windows-x64/certamen-windows-x64.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true

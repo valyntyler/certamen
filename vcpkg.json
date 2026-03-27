@@ -1,0 +1,8 @@
+{
+  "name": "certamen",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "yaml-cpp",
+    "libssh"
+  ]
+}

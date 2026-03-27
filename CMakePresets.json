@@ -12,7 +12,6 @@
     {
       "name": "default",
       "hidden": true,
-      "description": "Default configuration",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_CXX_STANDARD": "17",
@@ -22,7 +21,6 @@
     {
       "name": "release",
       "inherits": "default",
-      "description": "Release build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -30,7 +28,6 @@
     {
       "name": "debug",
       "inherits": "default",
-      "description": "Debug build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -40,23 +37,12 @@
     {
       "name": "release",
       "configurePreset": "release",
-      "description": "Build in release mode",
       "jobs": 0
     },
     {
       "name": "debug",
       "configurePreset": "debug",
-      "description": "Build in debug mode",
       "jobs": 0
-    }
-  ],
-  "testPresets": [
-    {
-      "name": "default",
-      "configurePreset": "debug",
-      "output": {
-        "outputOnFailure": true
-      }
     }
   ]
 }

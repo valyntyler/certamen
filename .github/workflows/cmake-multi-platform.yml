@@ -1,13 +1,14 @@
-name: CMake on multiple platforms
+name: CMake Matrix CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
+    name: ${{ matrix.os }} / ${{ matrix.build_type }}
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -17,43 +18,56 @@ jobs:
         build_type: [Release]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Install dependencies (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake build-essential libyaml-cpp-dev libssh-dev
+          sudo apt-get install -y cmake ninja-build build-essential libyaml-cpp-dev libssh-dev pkg-config
 
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install cmake yaml-cpp libssh
+          brew update
+          brew install cmake ninja yaml-cpp libssh pkg-config
 
-      - name: Install vcpkg (Windows)
+      - name: Setup MSVC
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Setup vcpkg (Windows)
         if: matrix.os == 'windows-latest'
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
-          appendedCacheKey: ${{ hashFiles( '**/CMakeLists.txt' ) }}
           vcpkgGitCommitId: '26c51502faedb3a63661f8082e4ea81b0fa98e34'
+          appendedCacheKey: ${{ hashFiles('vcpkg.json', 'CMakeLists.txt', 'CMakePresets.json') }}
 
-      - name: Configure CMake (Unix)
-        if: matrix.os != 'windows-latest'
+      # Configure
+      - name: Configure (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         run: >
-          cmake
-          --preset release
+          cmake --preset release
 
-      - name: Configure CMake (Windows with vcpkg toolchain)
+      - name: Configure (macOS)
+        if: matrix.os == 'macos-latest'
+        run: >
+          cmake --preset release
+          -DCMAKE_PREFIX_PATH="$(brew --prefix yaml-cpp);$(brew --prefix libssh)"
+
+      - name: Configure (Windows)
         if: matrix.os == 'windows-latest'
+        shell: powershell
         run: >
-          cmake
-          --preset release
-          -DVCPKG_MANIFEST_MODE=OFF
-          -DVCPKG_TOOLCHAIN=${{ runner.workspace }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake
+          cmake --preset release
+          -DCMAKE_TOOLCHAIN_FILE="${{ runner.workspace }}/b/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
+      # Build
       - name: Build
-        run: cmake --build --preset release
+        run: cmake --build --preset release --config ${{ matrix.build_type }}
 
+      # Test
       - name: Test
-        if: matrix.os != 'windows-latest'
-        run: ctest --test-dir build --output-on-failure
+        run: ctest --test-dir build --build-config ${{ matrix.build_type }} --output-on-failure
