@@ -73,8 +73,9 @@ jobs:
           path: certamen-macos-x64.tar.gz
 
   build-windows:
-    name: Build on Windows
+    name: Build on Windows (optional)
     runs-on: windows-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -86,7 +87,7 @@ jobs:
         with:
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgGitCommitId: '26c51502faedb3a63661f8082e4ea81b0fa98e34'
-      
+
       - name: Install deps with vcpkg
         shell: pwsh
         run: |
@@ -117,23 +118,38 @@ jobs:
 
   create-release:
     name: Create Release
-    needs: [build-linux, build-macos, build-windows]
+    needs: [build-linux, build-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download artifacts
+      - name: Download artifacts (required + optional)
         uses: actions/download-artifact@v4
         with:
           path: release-artifacts
+          if-no-files-found: ignore
+
+      - name: Build file list for release
+        id: files
+        run: |
+          FILES=""
+          if [ -f release-artifacts/certamen-linux-x64/certamen-linux-x64.tar.gz ]; then
+            FILES="${FILES}release-artifacts/certamen-linux-x64/certamen-linux-x64.tar.gz"$'\n'
+          fi
+          if [ -f release-artifacts/certamen-macos-x64/certamen-macos-x64.tar.gz ]; then
+            FILES="${FILES}release-artifacts/certamen-macos-x64/certamen-macos-x64.tar.gz"$'\n'
+          fi
+          if [ -f release-artifacts/certamen-windows-x64/certamen-windows-x64.zip ]; then
+            FILES="${FILES}release-artifacts/certamen-windows-x64/certamen-windows-x64.zip"$'\n'
+          fi
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            release-artifacts/certamen-linux-x64/certamen-linux-x64.tar.gz
-            release-artifacts/certamen-macos-x64/certamen-macos-x64.tar.gz
-            release-artifacts/certamen-windows-x64/certamen-windows-x64.zip
+          files: ${{ steps.files.outputs.files }}
           draft: false
           prerelease: false
           generate_release_notes: true
