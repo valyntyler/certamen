@@ -1,5 +1,6 @@
 #include "session.hpp"
 #include "app.hpp"
+#include "banner.hpp"
 #include "model.hpp"
 #include "screens/quiz.hpp"
 #include "screens/quiz_result.hpp"
@@ -17,7 +18,7 @@ using namespace ftxui;
 static void write_metrics(const std::string& path,
                           const std::string& player_name,
                           const std::string& quiz_file,
-                          int score, int total )
+                          int score, int total)
 {
     if (path.empty()) return;
     std::ofstream out(path);
@@ -30,13 +31,11 @@ static void write_metrics(const std::string& path,
 static void run_name_prompt(std::string& player_name, ScreenInteractive& screen)
 {
     auto input = Input(&player_name, "Your name...");
-    bool submitted = false;
 
     auto component = Container::Vertical({input});
     component |= CatchEvent([&](Event event) {
         if (event == Event::Return && !player_name.empty())
         {
-            submitted = true;
             screen.Exit();
             return true;
         }
@@ -51,8 +50,7 @@ static void run_name_prompt(std::string& player_name, ScreenInteractive& screen)
     auto renderer = Renderer(component, [&] {
         return vbox({
             text(""),
-            text(""),
-            text(" Certamen ") | bold | center,
+            render_banner(),
             text(""),
             separator() | color(Color::GrayDark),
             text(""),
@@ -62,7 +60,7 @@ static void run_name_prompt(std::string& player_name, ScreenInteractive& screen)
             text(""),
             separator() | color(Color::GrayDark),
             text(" Enter to continue ") | dim | center,
-        }) | borderRounded | size(WIDTH, LESS_THAN, 50) | center;
+        }) | borderRounded | center;
     });
 
     screen.Loop(renderer);
@@ -100,7 +98,7 @@ static int run_quiz_picker(const std::vector<std::string>& quiz_files,
     auto renderer = Renderer(component, [&, menu, entries] {
         return vbox({
             text(""),
-            text(" Certamen ") | bold | center,
+            render_banner(),
             text(" " + player_name) | dim | center,
             text(""),
             separator() | color(Color::GrayDark),
@@ -109,7 +107,7 @@ static int run_quiz_picker(const std::vector<std::string>& quiz_files,
             text(""),
             separator() | color(Color::GrayDark),
             text(" Enter start  q disconnect ") | dim | center,
-        }) | borderRounded | size(WIDTH, LESS_THAN, 50) | center;
+        }) | borderRounded | center;
     });
 
     screen.Loop(renderer);
@@ -123,7 +121,10 @@ static std::pair<int,int> run_quiz(const std::string& quiz_file,
     state.filename = quiz_file;
     try
     {
-        state.questions = load_questions(state.filename);
+        auto quiz = load_quiz(state.filename);
+        state.questions   = std::move(quiz.questions);
+        state.quiz_name   = std::move(quiz.name);
+        state.quiz_author = std::move(quiz.author);
     }
     catch (const std::exception& e)
     {

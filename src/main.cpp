@@ -8,7 +8,9 @@
 #include "screens/add_question.hpp"
 #include "screens/remove_question.hpp"
 #include "screens/change_answer.hpp"
+#include "screens/edit_choice.hpp"
 #include "screens/list_questions.hpp"
+#include "screens/set_metadata.hpp"
 #include "screens/save_confirm.hpp"
 #include "screens/quit_confirm.hpp"
 
@@ -45,7 +47,10 @@ static int run_local(const std::string& filename)
 
     try
     {
-        state.questions = load_questions(state.filename);
+        auto quiz = load_quiz(state.filename);
+        state.questions    = std::move(quiz.questions);
+        state.quiz_name    = std::move(quiz.name);
+        state.quiz_author  = std::move(quiz.author);
         state.status_message = "Loaded " + std::to_string(state.questions.size()) +
                                " questions from " + state.filename + ".";
     }
@@ -54,19 +59,23 @@ static int run_local(const std::string& filename)
         state.status_message = std::string("Warning: ") + e.what() +
                                " Starting with an empty quiz.";
     }
-    state.saved_questions = state.questions;
+    state.saved_questions   = state.questions;
+    state.saved_quiz_name   = state.quiz_name;
+    state.saved_quiz_author = state.quiz_author;
 
     auto screen = ScreenInteractive::Fullscreen();
 
-    auto menu_screen           = make_menu_screen(state);
-    auto quiz_screen           = make_quiz_screen(state);
-    auto quiz_result_screen    = make_quiz_result_screen(state);
-    auto add_question_screen   = make_add_question_screen(state);
+    auto menu_screen            = make_menu_screen(state);
+    auto quiz_screen            = make_quiz_screen(state);
+    auto quiz_result_screen     = make_quiz_result_screen(state);
+    auto add_question_screen    = make_add_question_screen(state);
     auto remove_question_screen = make_remove_question_screen(state);
-    auto change_answer_screen  = make_change_answer_screen(state);
-    auto list_questions_screen = make_list_questions_screen(state);
-    auto save_confirm_screen   = make_save_confirm_screen(state, screen);
-    auto quit_confirm_screen   = make_quit_confirm_screen(state, screen);
+    auto change_answer_screen   = make_change_answer_screen(state);
+    auto edit_choice_screen     = make_edit_choice_screen(state);
+    auto list_questions_screen  = make_list_questions_screen(state);
+    auto set_metadata_screen    = make_set_metadata_screen(state);
+    auto save_confirm_screen    = make_save_confirm_screen(state, screen);
+    auto quit_confirm_screen    = make_quit_confirm_screen(state, screen);
 
     int screen_index = 0;
     Components screens = {
@@ -76,7 +85,9 @@ static int run_local(const std::string& filename)
         add_question_screen,
         remove_question_screen,
         change_answer_screen,
+        edit_choice_screen,
         list_questions_screen,
+        set_metadata_screen,
         save_confirm_screen,
         quit_confirm_screen,
     };
