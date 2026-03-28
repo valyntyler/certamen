@@ -13,9 +13,8 @@
 
   Read *[my blog](https://blog.trintler.me/2026/03/28/Certamen-the-TUI-Quizzing-App/)* documenting the development process for this project.
   ## Author *Quizzes* and seamlessly "test" yourself in a full-screen TUI; host the game over SSH for you and your friends to play!
-  > [!TIP]
-  >
-  > This way, you get to make fun of their... incredibly (lacking) haskell knowledge for example!
+  > This way, you get to make fun of their... incredibly (lacking) *haskell* knowledge for example!
+
   ### Releases
   [![Release](https://img.shields.io/github/v/release/trintlermint/certamen?label=linux%20compatible&color=success)](https://github.com/trintlermint/certamen/releases/latest)
   [![Release](https://img.shields.io/github/v/release/trintlermint/certamen?label=macOS%20compatible&color=success)](https://github.com/trintlermint/certamen/releases/latest)
@@ -36,7 +35,7 @@
 
 - [Building](#building)
   - [Dependencies](#dependencies)
-  - [CMake (recommended)](#cmake-recommended)
+  - [CMake](#cmake)
   - [Manual compilation](#manual-compilation-cli)
   - [macOS and Windows](#macos-and-windows)
 - [Usage](#usage)
@@ -66,7 +65,7 @@ Certamen uses these predominant three libraries:
 
 You also need a **C++17 compiler (GCC >= 8 or Clang >= 7)** and **CMake >= 3.14**.
 
-### CMake (recommended)
+### CMake
 
 **Ubuntu / Debian:**
 
@@ -112,7 +111,8 @@ If yaml-cpp are installed system-wide and you want to skip CMake entirely, you c
 ```bash
 g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 main.cpp -lyaml-cpp -o certamen
 ```
-
+> [!NOTE]
+> 
 > This builds a local-only binary without the TUI or SSH server. Use the CMake build for the included features.
 
 ### macOS and Windows
@@ -132,7 +132,7 @@ cmake --preset release
 cmake --build --preset release
 ```
 
-> [!WARN]
+> [!WARNING]
 >
 > I am NOT a macOS OR Windows user; Manuals told me this should work, if it does or doesn't please inform me on Github Issues! See [CONTRIBUTING.md](CONTRIBUTING.md)
 
