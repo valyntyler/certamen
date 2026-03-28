@@ -202,31 +202,36 @@ Players connect with `ssh -p <port> <name>@<host>` and get the same TUI in an *i
 Quizzes are YAML files. Each question is a map in a top-to-down sequence which is nested inside `questions`:
 
 ```yaml
-- question: "What is the time complexity of binary search?"
-  choices:
-    - "O(n)"
-    - "O(log n)"
-    - "O(n log n)"
-    - "O(1)"
-  answer: 1
-  code: |
-    int bsearch(int* a, int n, int target) {
-        int lo = 0, hi = n - 1;
-        while (lo <= hi) {
-            int mid = (lo + hi) / 2;
-            if (a[mid] == target) return mid;
-            else if (a[mid] < target) lo = mid + 1;
-            else hi = mid - 1;
-        }
-        return -1;
-    }
-  explain: |
-    Each iteration halves the search space.
-    After k iterations the range is n/2^k, which reaches 1 when k = log2(n).
+name: Certamen DEMO
+author: trintlermint
+questions:
+  - question: Which of the Haskell functions below can calculate the Euclidean norm sqrt(a^2 + b^2)?
+    code: |
+      nrm1 :: Double -> Double -> Double
+      nrm1 a b = sqrt (a^2 + b^2)
+
+      nrm2 :: (Double, Double) -> Double
+      nrm2 (a, b) = sqrt (a^2 + b^2)
+
+    explain: |
+      Both definitions compute sqrt (a^2 + b^2), one by separate arguments and one by a tuple, using only sqrt and (^).
+
+    choices:
+      - Only nrm1 is a correct implementation.
+      - Only nrm2 is a correct implementation.
+      - nrm1 and nrm2 are both correct implementations.
+      - nrm1 and nrm2 are both incorrect implementations.
+    answer: 2
+  - question: Is the else part in a Haskell if expression mandatory?
+    explain: |
+      Haskell's if is an expression and requires both then and else branches.
+    ...
+
 ```
 
 - `question`, `choices` >= 2, and `answer` are required. `code` and `explain` are optional.
 - `answer` is a *0-based* index into `choices`. The TUI displays 1-based numbering to the player.
+- `name`, `author` are optional and are metadata only at the start of the file
 - `language` is an optional field for syntax highlight hinting (e.g. `language: haskell`) (see `syntax.cpp` for what has been implemented thus far).
 
 > See [`example_quiz.yaml`](example_quiz.yaml) for a working template and helping me stop writing stuff.
