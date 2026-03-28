@@ -10,7 +10,8 @@
   A *Terminal User Interface* **Quiz Game Engine** written entirely in C++.
 
   Made with love by [trintlermint](#credits).
-  
+
+  Read *[my blog](https://blog.trintler.me/2026/03/28/Certamen-the-TUI-Quizzing-App/)* documenting the development process for this project.
   ## Author *Quizzes* and seamlessly "test" yourself in a full-screen TUI; host the game over SSH for you and your friends to play!
   > [!TIP]
   >
