@@ -169,7 +169,10 @@ The TUI presents a menu with keyboard (j/k), (up/down/left/right) and number-key
 8. *Save*; Save all changes and view diffs.
 
 > Press `R` on the main menu to toggle randomized question *and* answer order.
+
+> [!IMPORTANT]
 > Press `q` anywhere to QUIT the program.
+
 > REMARK: The mouse functionality is WIP.
 
 ### SSH server mode
