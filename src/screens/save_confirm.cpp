@@ -1,30 +1,23 @@
 #include "screens/save_confirm.hpp"
 #include "app.hpp"
 #include "diff.hpp"
-#include "model.hpp"
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
-#include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 
 using namespace ftxui;
 
-ftxui::Component make_save_confirm_screen(AppState& state, ftxui::ScreenInteractive& screen)
+ftxui::Component make_save_confirm_screen(AppState& state)
 {
-    auto save_btn = Button(" Save and Exit ", [&] {
+    auto save_btn = Button(" Save ", [&] {
         try
         {
-            QuizFile quiz;
-            quiz.name      = state.quiz_name;
-            quiz.author    = state.quiz_author;
-            quiz.questions = state.questions;
-            save_quiz(quiz, state.filename);
-            screen.Exit();
+            state.save_current_file();
+            state.current_screen = AppScreen::MENU;
         }
         catch (const std::exception& e)
         {
             state.status_message = std::string("Save error: ") + e.what();
-            state.current_screen = AppScreen::MENU;
         }
     }, ButtonOption::Simple());
 
@@ -48,7 +41,7 @@ ftxui::Component make_save_confirm_screen(AppState& state, ftxui::ScreenInteract
 
         return vbox({
             text(""),
-            text(" Save and Exit ") | bold | center,
+            text(" Save ") | bold | center,
             text(""),
             separator() | color(Color::GrayDark),
             text(""),

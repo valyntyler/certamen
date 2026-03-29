@@ -21,6 +21,7 @@ enum class AppScreen
     SET_METADATA,
     SAVE_CONFIRM,
     QUIT_CONFIRM,
+    LOAD_QUIZ,
 };
 
 struct AppState
@@ -34,6 +35,10 @@ struct AppState
     std::string quiz_author;
     std::string saved_quiz_name;
     std::string saved_quiz_author;
+    bool file_loaded = false;
+
+    // load quiz screen
+    std::string load_path_text;
 
     // screen routing
     AppScreen current_screen = AppScreen::MENU;
@@ -83,6 +88,50 @@ struct AppState
     {
         current_screen = AppScreen::MENU;
         status_message.clear();
+    }
+
+    bool has_unsaved_changes() const
+    {
+        return questions != saved_questions
+            || quiz_name != saved_quiz_name
+            || quiz_author != saved_quiz_author;
+    }
+
+    bool load_file(const std::string& path)
+    {
+        try
+        {
+            auto quiz = load_quiz(path);
+            filename       = path;
+            questions      = std::move(quiz.questions);
+            quiz_name      = std::move(quiz.name);
+            quiz_author    = std::move(quiz.author);
+            saved_questions   = questions;
+            saved_quiz_name   = quiz_name;
+            saved_quiz_author = quiz_author;
+            file_loaded = true;
+            status_message = "Loaded " + std::to_string(questions.size()) +
+                             " questions from " + filename + ".";
+            return true;
+        }
+        catch (const std::exception& e)
+        {
+            status_message = std::string("Load error: ") + e.what();
+            return false;
+        }
+    }
+
+    void save_current_file()
+    {
+        QuizFile quiz;
+        quiz.name      = quiz_name;
+        quiz.author    = quiz_author;
+        quiz.questions = questions;
+        save_quiz(quiz, filename);
+        saved_questions   = questions;
+        saved_quiz_name   = quiz_name;
+        saved_quiz_author = quiz_author;
+        status_message = "Saved to " + filename + ".";
     }
 
     void reset_add_form()

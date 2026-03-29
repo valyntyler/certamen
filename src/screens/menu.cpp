@@ -17,8 +17,8 @@ ftxui::Component make_menu_screen(AppState& state)
         "  Edit Choice",
         "  List Questions",
         "  Set Author and Name",
-        "  Save and Exit",
-        "  Quit without Saving",
+        "  Save",
+        "  Load Quiz File",
     };
 
     auto menu = Menu(&entries, &state.menu_selected);
@@ -95,12 +95,17 @@ ftxui::Component make_menu_screen(AppState& state)
                     state.current_screen = AppScreen::SET_METADATA;
                     return true;
                 case 7:
+                    if (!state.file_loaded)
+                    {
+                        state.status_message = "No file loaded to save.";
+                        return true;
+                    }
                     state.compute_diff();
                     state.current_screen = AppScreen::SAVE_CONFIRM;
                     return true;
                 case 8:
-                    state.compute_diff();
-                    state.current_screen = AppScreen::QUIT_CONFIRM;
+                    state.load_path_text.clear();
+                    state.current_screen = AppScreen::LOAD_QUIZ;
                     return true;
             }
         }
@@ -108,23 +113,29 @@ ftxui::Component make_menu_screen(AppState& state)
     });
 
     return Renderer(component, [&, menu] {
-        bool has_changes = (state.questions != state.saved_questions)
-                        || (state.quiz_name != state.saved_quiz_name)
-                        || (state.quiz_author != state.saved_quiz_author);
+        bool has_changes = state.has_unsaved_changes();
 
-        auto info_bar = hbox({
-            text(" Randomise: ") | dim,
-            state.randomise
-                ? text(" ON ") | color(Color::Green) | bold
-                : text(" OFF ") | dim,
-            text("  ") | dim, separator(), text("  ") | dim,
-            text(std::to_string(state.questions.size())) | bold,
-            text(" questions") | dim,
-            text("  ") | dim, separator(), text("  ") | dim,
-            text(state.filename) | dim,
-            filler(),
-            text(has_changes ? " modified " : "") | color(Color::Yellow) | dim,
-        });
+        Elements info_parts;
+        info_parts.push_back(text(" Randomise: ") | dim);
+        info_parts.push_back(state.randomise
+            ? text(" ON ") | color(Color::Green) | bold
+            : text(" OFF ") | dim);
+        info_parts.push_back(text("  ") | dim);
+        info_parts.push_back(separator());
+        info_parts.push_back(text("  ") | dim);
+        info_parts.push_back(text(std::to_string(state.questions.size())) | bold);
+        info_parts.push_back(text(" questions") | dim);
+        info_parts.push_back(text("  ") | dim);
+        info_parts.push_back(separator());
+        info_parts.push_back(text("  ") | dim);
+        if (state.file_loaded)
+            info_parts.push_back(text(state.filename) | dim);
+        else
+            info_parts.push_back(text("no file loaded") | color(Color::RedLight) | dim);
+        info_parts.push_back(filler());
+        if (has_changes)
+            info_parts.push_back(text(" modified ") | color(Color::Yellow) | dim);
+        auto info_bar = hbox(std::move(info_parts));
 
         Elements content;
         content.push_back(text(""));
@@ -144,7 +155,7 @@ ftxui::Component make_menu_screen(AppState& state)
         }
 
         content.push_back(separator() | color(Color::GrayDark));
-        content.push_back(text(" 1-9 select  R randomise  Enter confirm ") | dim | center);
+        content.push_back(text(" 1-9 select  R randomise  Enter confirm  q quit ") | dim | center);
 
         return vbox(std::move(content)) | borderRounded;
     });
