@@ -166,10 +166,10 @@ The TUI presents a menu with keyboard (j/k), (up/down/left/right) and number-key
 5. *Edit Choice*; update the text contents of a selected question's choice.
 6. *List Questions*; browse all questions with toggleable answers, code, and explanations
 7. *Set Author and Name*; set metadata describing the author/name.
-8. *Save and Exit*; write changes back to the open YAML file.
-9. *Quit without Saving*; write no changes back, quit the program.
+8. *Save*; Save all changes and view diffs.
 
 > Press `R` on the main menu to toggle randomized question *and* answer order.
+> Press `q` anywhere to QUIT the program.
 > REMARK: The mouse functionality is WIP.
 
 ### SSH server mode

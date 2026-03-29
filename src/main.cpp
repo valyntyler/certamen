@@ -1,5 +1,4 @@
 #include "app.hpp"
-#include "model.hpp"
 #include "serve.hpp"
 #include "session.hpp"
 #include "screens/menu.hpp"
@@ -13,6 +12,7 @@
 #include "screens/set_metadata.hpp"
 #include "screens/save_confirm.hpp"
 #include "screens/quit_confirm.hpp"
+#include "screens/load_quiz.hpp"
 
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/event.hpp>
@@ -27,7 +27,7 @@ using namespace ftxui;
 static void print_usage(const char* prog)
 {
     std::cout << "Usage:\n"
-              << "  " << prog << " [quiz.yaml]              Local TUI mode\n"
+              << "  " << prog << " [quiz.yaml ...]           Local TUI mode\n"
               << "  " << prog << " serve [options] <files>   SSH server mode\n"
               << "\nServe options:\n"
               << "  --port <N>          Listen port (default: 2222)\n"
@@ -40,28 +40,14 @@ static void print_usage(const char* prog)
               << "  ssh -p 2222 quiz@localhost\n";
 }
 
-static int run_local(const std::string& filename)
+static int run_local(const std::vector<std::string>& files)
 {
     AppState state;
-    state.filename = filename;
 
-    try
-    {
-        auto quiz = load_quiz(state.filename);
-        state.questions    = std::move(quiz.questions);
-        state.quiz_name    = std::move(quiz.name);
-        state.quiz_author  = std::move(quiz.author);
-        state.status_message = "Loaded " + std::to_string(state.questions.size()) +
-                               " questions from " + state.filename + ".";
-    }
-    catch (const std::exception& e)
-    {
-        state.status_message = std::string("Warning: ") + e.what() +
-                               " Starting with an empty quiz.";
-    }
-    state.saved_questions   = state.questions;
-    state.saved_quiz_name   = state.quiz_name;
-    state.saved_quiz_author = state.quiz_author;
+    if (!files.empty())
+        state.load_file(files[0]);
+    else
+        state.status_message = "No file loaded. Use 'Load Quiz File' to open a quiz.";
 
     auto screen = ScreenInteractive::Fullscreen();
 
@@ -74,8 +60,9 @@ static int run_local(const std::string& filename)
     auto edit_choice_screen     = make_edit_choice_screen(state);
     auto list_questions_screen  = make_list_questions_screen(state);
     auto set_metadata_screen    = make_set_metadata_screen(state);
-    auto save_confirm_screen    = make_save_confirm_screen(state, screen);
+    auto save_confirm_screen    = make_save_confirm_screen(state);
     auto quit_confirm_screen    = make_quit_confirm_screen(state, screen);
+    auto load_quiz_screen       = make_load_quiz_screen(state);
 
     int screen_index = 0;
     Components screens = {
@@ -90,6 +77,7 @@ static int run_local(const std::string& filename)
         set_metadata_screen,
         save_confirm_screen,
         quit_confirm_screen,
+        load_quiz_screen,
     };
     auto tab = Container::Tab(std::move(screens), &screen_index);
 
@@ -99,13 +87,26 @@ static int run_local(const std::string& filename)
     });
 
     main_renderer |= CatchEvent([&](Event event) {
-        if (state.current_screen == AppScreen::MENU &&
-            (event == Event::Character('r') || event == Event::Character('R')))
+        if (state.current_screen == AppScreen::MENU)
         {
-            state.randomise = !state.randomise;
-            state.status_message = std::string("Randomise is now ") +
-                                   (state.randomise ? "ON" : "OFF") + ".";
-            return true;
+            if (event == Event::Character('r') || event == Event::Character('R'))
+            {
+                state.randomise = !state.randomise;
+                state.status_message = std::string("Randomise is now ") +
+                                       (state.randomise ? "ON" : "OFF") + ".";
+                return true;
+            }
+            if (event == Event::Character('q'))
+            {
+                if (state.has_unsaved_changes())
+                {
+                    state.compute_diff();
+                    state.current_screen = AppScreen::QUIT_CONFIRM;
+                }
+                else
+                    screen.Exit();
+                return true;
+            }
         }
         return false;
     });
@@ -118,12 +119,11 @@ int main(int argc, char* argv[])
 {
     if (argc < 2)
     {
-        return run_local("quiz.yaml");
+        return run_local({});
     }
 
     std::string first_arg = argv[1];
 
-    // --session
     if (first_arg == "--session")
     {
         std::string metrics_file;
@@ -139,7 +139,6 @@ int main(int argc, char* argv[])
         return session_main(files, metrics_file);
     }
 
-    // serve
     if (first_arg == "serve")
     {
         int port = 2222;
@@ -177,12 +176,15 @@ int main(int argc, char* argv[])
 
         return serve_main(port, password, files, key_path, max_clients);
     }
+
     if (first_arg == "--help" || first_arg == "-h")
     {
         print_usage(argv[0]);
         return 0;
     }
 
-    // fallback: local mode with specified file
-    return run_local(first_arg);
+    std::vector<std::string> files;
+    for (int i = 1; i < argc; ++i)
+        files.push_back(argv[i]);
+    return run_local(files);
 }
