@@ -22,23 +22,34 @@ enum class AppScreen
     SAVE_CONFIRM,
     QUIT_CONFIRM,
     LOAD_QUIZ,
+    QUIZ_SETUP,
+    PICK_FILE,
+};
+
+struct LoadedFile
+{
+    std::string filename;
+    std::string name;
+    std::string author;
+    std::vector<Question> saved_questions;
+    std::string saved_name;
+    std::string saved_author;
 };
 
 struct AppState
 {
-    std::string filename;
     std::vector<Question> questions;
-    std::vector<Question> saved_questions;
     bool randomise = false;
     std::string status_message;
     std::string quiz_name;
     std::string quiz_author;
-    std::string saved_quiz_name;
-    std::string saved_quiz_author;
-    bool file_loaded = false;
+
+    std::vector<LoadedFile> loaded_files;
 
     // load quiz screen
     std::string load_path_text;
+    int load_screen_selected = 0;
+    int load_screen_mode = 0; // 0 = file list, 1 = input
 
     // screen routing
     AppScreen current_screen = AppScreen::MENU;
@@ -49,6 +60,7 @@ struct AppState
     int quiz_selected = 0;
     bool quiz_answered = false;
     bool quiz_was_correct = false;
+    bool quiz_quit_pending = false;
     std::string add_question_text;
     std::string add_code_text;
     std::string add_explain_text;
@@ -59,7 +71,7 @@ struct AppState
     bool add_include_code = false;
     bool add_include_explain = false;
 
-    // change answer: 0 state = pick question, 1 state = pick answer
+    // change answer phase, 0 state is pick question, 1 state = pick answer
     int change_answer_phase = 0;
     int select_question_idx = 0;
     int select_new_answer = 0;
@@ -73,6 +85,18 @@ struct AppState
     std::string meta_name_text;
     std::string meta_author_text;
 
+    // file picker
+    int target_file = 0;
+    int pick_file_cursor = 0;
+    AppScreen pick_file_then = AppScreen::MENU;
+    std::vector<int> target_indices;
+
+    // quiz setup (file ordering)
+    std::vector<bool> quiz_file_included;
+    std::vector<int> quiz_file_order;
+    int quiz_setup_phase = 0;   // 0 => yorue selecting the files, 1 => youre ordering them
+    int quiz_setup_cursor = 0;
+
     // rm question
     int remove_question_idx = 0;
 
@@ -81,7 +105,7 @@ struct AppState
     bool list_show_code = true;
     bool list_show_explain = true;
 
-    // diff lines for quit confirm
+    // diff lines for quit/save
     std::vector<std::string> diff_lines;
 
     void return_to_menu()
@@ -90,28 +114,118 @@ struct AppState
         status_message.clear();
     }
 
+    void build_target_indices()
+    {
+        target_indices.clear();
+        for (int i = 0; i < static_cast<int>(questions.size()); ++i)
+        {
+            int sf = questions[i].source_file;
+            if (target_file < 0 || sf == target_file || (sf < 0 && target_file == 0))
+                target_indices.push_back(i);
+        }
+    }
+
+    AppScreen route_to(AppScreen dest)
+    {
+        if (loaded_files.size() > 1)
+        {
+            pick_file_cursor = 0;
+            pick_file_then = dest;
+            return AppScreen::PICK_FILE;
+        }
+        target_file = loaded_files.empty() ? -1 : 0;
+        build_target_indices();
+        return dest;
+    }
+
+    void save_target_file()
+    {
+        if (target_file < 0 || target_file >= static_cast<int>(loaded_files.size()))
+            return;
+
+        for (auto& q : questions)
+            if (q.source_file < 0)
+                q.source_file = target_file;
+
+        auto& lf = loaded_files[target_file];
+        QuizFile qf;
+        qf.name   = (target_file == 0) ? quiz_name   : lf.name;
+        qf.author = (target_file == 0) ? quiz_author : lf.author;
+
+        for (const auto& q : questions)
+            if (q.source_file == target_file)
+                qf.questions.push_back(q);
+
+        save_quiz(qf, lf.filename);
+        lf.saved_questions = qf.questions;
+        lf.saved_name      = qf.name;
+        lf.saved_author    = qf.author;
+        status_message = "Saved " + lf.filename + ".";
+    }
+
     bool has_unsaved_changes() const
     {
-        return questions != saved_questions
-            || quiz_name != saved_quiz_name
-            || quiz_author != saved_quiz_author;
+        for (int i = 0; i < static_cast<int>(loaded_files.size()); ++i)
+        {
+            const auto& lf = loaded_files[i];
+
+            if (i == 0 && (quiz_name != lf.saved_name || quiz_author != lf.saved_author))
+                return true;
+
+            std::vector<Question> current;
+            for (const auto& q : questions)
+                if (q.source_file == i)
+                    current.push_back(q);
+
+            if (current != lf.saved_questions)
+                return true;
+        }
+
+        for (const auto& q : questions)
+            if (q.source_file < 0)
+                return true;
+
+        return false;
     }
 
     bool load_file(const std::string& path)
     {
+        for (const auto& lf : loaded_files)
+            if (lf.filename == path)
+            {
+                status_message = "Already loaded: " + path;
+                return false;
+            }
+
         try
         {
             auto quiz = load_quiz(path);
-            filename       = path;
-            questions      = std::move(quiz.questions);
-            quiz_name      = std::move(quiz.name);
-            quiz_author    = std::move(quiz.author);
-            saved_questions   = questions;
-            saved_quiz_name   = quiz_name;
-            saved_quiz_author = quiz_author;
-            file_loaded = true;
-            status_message = "Loaded " + std::to_string(questions.size()) +
-                             " questions from " + filename + ".";
+            int file_idx = static_cast<int>(loaded_files.size());
+            int num_loaded = static_cast<int>(quiz.questions.size());
+
+            LoadedFile lf;
+            lf.filename     = path;
+            lf.name         = quiz.name;
+            lf.author       = quiz.author;
+            lf.saved_name   = quiz.name;
+            lf.saved_author = quiz.author;
+
+            for (auto& q : quiz.questions)
+            {
+                q.source_file = file_idx;
+                questions.push_back(q);
+            }
+            lf.saved_questions = std::move(quiz.questions);
+
+            loaded_files.push_back(std::move(lf));
+
+            if (loaded_files.size() == 1)
+            {
+                quiz_name   = loaded_files[0].name;
+                quiz_author = loaded_files[0].author;
+            }
+
+            status_message = "Loaded " + std::to_string(num_loaded) + " questions from " + path + ".";
             return true;
         }
         catch (const std::exception& e)
@@ -121,17 +235,66 @@ struct AppState
         }
     }
 
-    void save_current_file()
+    void unload_file(int file_idx)
     {
-        QuizFile quiz;
-        quiz.name      = quiz_name;
-        quiz.author    = quiz_author;
-        quiz.questions = questions;
-        save_quiz(quiz, filename);
-        saved_questions   = questions;
-        saved_quiz_name   = quiz_name;
-        saved_quiz_author = quiz_author;
-        status_message = "Saved to " + filename + ".";
+        if (file_idx < 0 || file_idx >= static_cast<int>(loaded_files.size()))
+            return;
+
+        questions.erase(
+            std::remove_if(questions.begin(), questions.end(),
+                [file_idx](const Question& q) { return q.source_file == file_idx; }),
+            questions.end());
+
+        for (auto& q : questions)
+            if (q.source_file > file_idx)
+                q.source_file--;
+
+        std::string removed_name = loaded_files[file_idx].filename;
+        loaded_files.erase(loaded_files.begin() + file_idx);
+
+        if (!loaded_files.empty())
+        {
+            quiz_name   = loaded_files[0].name;
+            quiz_author = loaded_files[0].author;
+        }
+        else
+        {
+            quiz_name.clear();
+            quiz_author.clear();
+        }
+
+        status_message = "Unloaded " + removed_name + ".";
+    }
+
+    void save_all_files()
+    {
+        if (loaded_files.empty())
+            return;
+
+        // assign unassigned questions to first file
+        for (auto& q : questions)
+            if (q.source_file < 0)
+                q.source_file = 0;
+
+        for (int i = 0; i < static_cast<int>(loaded_files.size()); ++i)
+        {
+            auto& lf = loaded_files[i];
+            QuizFile qf;
+            qf.name   = (i == 0) ? quiz_name   : lf.name;
+            qf.author = (i == 0) ? quiz_author : lf.author;
+
+            for (const auto& q : questions)
+                if (q.source_file == i)
+                    qf.questions.push_back(q);
+
+            save_quiz(qf, lf.filename);
+
+            lf.saved_questions = qf.questions;
+            lf.saved_name      = qf.name;
+            lf.saved_author    = qf.author;
+        }
+
+        status_message = "Saved " + std::to_string(loaded_files.size()) + (loaded_files.size() == 1 ? " file." : " files.");
     }
 
     void reset_add_form()
@@ -143,20 +306,22 @@ struct AppState
         add_include_explain = false;
     }
 
-    void start_quiz()
+    void start_quiz() { start_quiz_from(questions); }
+
+    void start_quiz_from(const std::vector<Question>& source)
     {
-        if (questions.empty()) return;
+        if (source.empty()) return;
         quiz_index = 0; quiz_score = 0;
         quiz_selected = 0; quiz_answered = false;
-        quiz_was_correct = false;
+        quiz_was_correct = false; quiz_quit_pending = false;
 
         if (randomise)
         {
             std::random_device rd; std::mt19937 rng(rd());
 
             quiz_session.clear();
-            quiz_session.reserve(questions.size());
-            for (const auto& q : questions)
+            quiz_session.reserve(source.size());
+            for (const auto& q : source)
             {
                 std::vector<std::pair<std::string, bool>> entries;
                 entries.reserve(q.choices.size());
@@ -185,66 +350,83 @@ struct AppState
         }
         else
         {
-            quiz_session = questions;
+            quiz_session = source;
         }
         current_screen = AppScreen::QUIZ;
     }
 
-    void compute_diff()
+    void compute_diff(int file_idx = -1)
     {
         diff_lines.clear();
-        bool questions_same = (saved_questions == questions);
-        bool meta_same = (saved_quiz_name == quiz_name && saved_quiz_author == quiz_author);
 
-        if (questions_same && meta_same)
+        if (!has_unsaved_changes())
         {
             diff_lines.emplace_back("[0] No unsaved changes.");
             return;
         }
 
-        if (saved_quiz_name != quiz_name)
-            diff_lines.push_back("[~] Name changed: \"" + saved_quiz_name + "\" -> \"" + quiz_name + "\"");
-        if (saved_quiz_author != quiz_author)
-            diff_lines.push_back("[~] Author changed: \"" + saved_quiz_author + "\" -> \"" + quiz_author + "\"");
-
-        for (const auto& orig : saved_questions)
+        for (int i = 0; i < static_cast<int>(loaded_files.size()); ++i)
         {
-            bool found = false;
-            for (const auto& cur : questions)
+            if (file_idx >= 0 && i != file_idx) continue;
+
+            const auto& lf = loaded_files[i];
+
+            if (loaded_files.size() > 1 && file_idx < 0)
+                diff_lines.push_back("  " + lf.filename + ":");
+
+            if (i == 0)
             {
-                if (cur.question == orig.question) { found = true; break; }
+                if (quiz_name != lf.saved_name)
+                    diff_lines.push_back("[~] Name: \"" + lf.saved_name + "\" -> \"" + quiz_name + "\"");
+                if (quiz_author != lf.saved_author)
+                    diff_lines.push_back("[~] Author: \"" + lf.saved_author + "\" -> \"" + quiz_author + "\"");
             }
-            if (!found)
-                diff_lines.push_back("[-] Removed: " + orig.question);
+
+            std::vector<Question> current;
+            for (const auto& q : questions)
+                if (q.source_file == i)
+                    current.push_back(q);
+
+            for (const auto& orig : lf.saved_questions)
+            {
+                bool found = false;
+                for (const auto& cur : current)
+                    if (cur.question == orig.question) { found = true; break; }
+                if (!found)
+                    diff_lines.push_back("[-] Removed: " + orig.question);
+            }
+
+            for (const auto& cur : current)
+            {
+                bool found = false;
+                for (const auto& orig : lf.saved_questions)
+                    if (orig.question == cur.question) { found = true; break; }
+                if (!found)
+                    diff_lines.push_back("[+] Added: " + cur.question);
+            }
+
+            for (const auto& cur : current)
+            {
+                for (const auto& orig : lf.saved_questions)
+                {
+                    if (cur.question != orig.question) continue;
+                    if (cur.answer != orig.answer)
+                        diff_lines.push_back("[~] Answer changed: " + cur.question);
+                    if (cur.choices != orig.choices)
+                        diff_lines.push_back("[~] Choices changed: " + cur.question);
+                    if (cur.code != orig.code)
+                        diff_lines.push_back("[~] Code changed: " + cur.question);
+                    if (cur.explain != orig.explain)
+                        diff_lines.push_back("[~] Explanation changed: " + cur.question);
+                    break;
+                }
+            }
         }
 
-        for (const auto& cur : questions)
-        {
-            bool found = false;
-            for (const auto& orig : saved_questions)
-            {
-                if (orig.question == cur.question) { found = true; break; }
-            }
-            if (!found)
-                diff_lines.push_back("[+] Added: " + cur.question);
-        }
-
-        for (const auto& cur : questions)
-        {
-            for (const auto& orig : saved_questions)
-            {
-                if (cur.question != orig.question) continue;
-                if (cur.answer != orig.answer)
-                    diff_lines.push_back("[~] Answer changed: " + cur.question);
-                if (cur.choices != orig.choices)
-                    diff_lines.push_back("[~] Choices changed: " + cur.question);
-                if (cur.code != orig.code)
-                    diff_lines.push_back("[~] Code changed: " + cur.question);
-                if (cur.explain != orig.explain)
-                    diff_lines.push_back("[~] Explanation changed: " + cur.question);
-                break;
-            }
-        }
+        if (file_idx < 0 || file_idx == 0)
+            for (const auto& q : questions)
+                if (q.source_file < 0)
+                    diff_lines.push_back("[+] New: " + q.question);
     }
 };
 
