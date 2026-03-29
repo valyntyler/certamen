@@ -61,7 +61,7 @@ ftxui::Component make_load_quiz_screen(AppState& state)
                     state.load_screen_mode = 1;
                 return true;
             }
-            return true;
+            return false;
         }
 
         return false;
