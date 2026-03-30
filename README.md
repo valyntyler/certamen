@@ -128,7 +128,7 @@ Without arguments it looks for `./quiz.yaml` in the current working directory be
 
 ### macOS and Windows
 
-**macOS** (using Homebrew):
+**Homebrew**:
 
 ```bash
 brew install cmake yaml-cpp libssh
@@ -167,7 +167,7 @@ g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 main.cpp -lyaml-cpp -o certamen
 certamen quiz.yaml
 ```
 
-The TUI presents a menu with keyboard (j/k), (up/down/left/right) and number-key navigation:
+The TUI (when opened using `certamen`) presents a menu with keyboard (j/k), (up/down/left/right) and number-key navigation:
 
 1. *Take Quiz*; answer questions (`bool: randomiser`), get scored at the end
 2. *Add Question*; compose a question with choices, optional code snippet, and explanation
@@ -177,13 +177,19 @@ The TUI presents a menu with keyboard (j/k), (up/down/left/right) and number-key
 6. *List Questions*; browse all questions with toggleable answers, code, and explanations
 7. *Set Author and Name*; set metadata describing the author/name.
 8. *Save*; Save all changes and view diffs.
+9. *Load Quiz File*; (Un)load quiz .yaml files into the current session.
 
-> Press `R` on the main menu to toggle randomized question *and* answer order.
+There are a few more functionalities:
+- Press `r` on the main menu to toggle randomized question *and* answer order.
+- Press `q` anywhere to QUIT the program.
 
-> [!IMPORTANT]
-> Press `q` anywhere to QUIT the program.
+Furthermore, if you wish, you can import more than one .yaml file, you do this by executing:
+`certamen 1.yaml 2.yaml ... n.yaml` for any `n` number of yaml files you desire.
+This will then be loaded into the session, to manipulate them such as loading, unloading them, go to the "Load Quiz File" option.
+Here, you can Load new files, or get rid of them in the current session.
 
-> REMARK: The mouse functionality is WIP.
+> [!NOTE]
+> The same applies to the Server hosting the SSH!
 
 ### SSH server mode
 
