@@ -170,6 +170,7 @@ g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 main.cpp -lyaml-cpp -o certamen
 certamen quiz.yaml
 ```
 
+
 The TUI (when opened using `certamen`) presents a menu with keyboard (j/k), (up/down/left/right) and number-key navigation:
 
 1. *Take Quiz*; answer questions (`bool: randomiser`), get scored at the end
@@ -320,5 +321,5 @@ The name **Certamen** is Latin for "contest" so I thought "yeah! this works!" th
 ## License
 
 [<img src="./assets/brainmade-org.png" alt="brainmade.org">](https://brainmade.org)
-MIT; See [LICENSE.md](LICENSE.md).
+MIT; See [LICENSE.md](LICENSE).
 Copyright 2026 Niladri Adhikary.
