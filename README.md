@@ -1,12 +1,12 @@
 <div align="center">
-  
+
   # CERTAMEN
   <p>
   <img src="assets/1.png" width="32%" alt="Demo 1">
   <img src="assets/2.png" width="32%" alt="Demo 2">
   <img src="assets/3.png" width="32%" alt="Demo 3">
   </p>
-  
+
   A *Terminal User Interface* **Quiz Game Engine** written entirely in C++.
 
   Made with love by [trintlermint](#credits).
@@ -25,9 +25,9 @@
   [![SSH Compatible](https://img.shields.io/badge/SSH-compatible-brightgreen)](#ssh-server-mode)
   [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   ### One might ask: I'm passing everything, why do I need this?
-  
+
   ## Charlie Brown aces his tests with this!
-  
+
   <img src="./assets/peanuts-quiz.png" alt="certamen-banner"/>
   <br />
 </div>
