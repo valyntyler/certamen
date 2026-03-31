@@ -47,7 +47,7 @@ documenting the development process for this project.
 - [Building](#building)
   - [Releases](#releases)
     - [AUR](#aur)
-    - [Nix](nix-cli)
+    - [Nix](#nix)
   - [Dependencies](#dependencies)
   - [CMake](#cmake)
   - [macOS and Windows](#macos-and-windows)
@@ -85,12 +85,30 @@ sudo pacman -S certamen
 
 > Or any equivalent command using your AUR package helper.
 
-#### Nix (CLI)
+#### Nix
 
-To download **Certamen** as a Nix package, do the following:
+To install this package imperatively, run the following: (make sure to have
+experimental features enabled)
 
 ```bash
-... to come by @valyntyler.
+nix profile add github:trintlermint#certamen
+```
+
+Or add it to your config with the following
+
+```nix
+# flake.nix
+
+{
+    inputs.certamen.url = "github:trintlermint/certamen";
+}
+
+# ...
+# somewhere else in your config
+
+{inputs, ...}: {
+    environment.systemPackages = [inputs.certamen.packages."x86_64-linux".default];
+}
 ```
 
 > [!WARNING]
