@@ -57,6 +57,9 @@
 ### Releases
 I have now setup Github Releases through Actions, if you want to skip the headache of building the program, feel free to head over to [**releases**](https://github.com/trintlermint/certamen/releases/latest).
 
+> [!WARNING]
+> This repository has just been moved from Github to Codeberg due to concerns regarding licensing, ownership of code, and ethics. Please wait for me to fix the current CI/CD, packages, etc to be written for codeberg. Thank you!
+
 #### AUR
 To download **Certamen** from the ArchLinux User Repository, do the following:
 
